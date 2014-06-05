@@ -1,0 +1,70 @@
+import play.*;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Global extends GlobalSettings{
+	
+	@Override
+	  public void onStart(Application app) {
+	   
+	 	//String From="1390038021";
+	    //String To="1390038012";
+	    //boolean Started=false;
+		String csvFile = "C:\\Users\\hp\\Desktop\\data_meter.csv\\data_meter.csv";
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ",";
+		
+		Map<String, String> maps = new HashMap<String, String>();
+		
+		
+		try {
+	 
+	 		br = new BufferedReader(new FileReader(csvFile));
+			while ((line = br.readLine()) != null) {
+	 
+				// use comma as separator
+				String[] value = line.split(cvsSplitBy);
+				maps.put(value[0], value[1]);
+	                        /* if(value[0].equals(From)){
+	                            Started = true;
+	                        } 
+	                        if(value[0].equals(To) && Started){
+	                            maps.put(value[0], value[1]);
+	                            Started = false;
+	                        }
+							if(Started){
+	                            maps.put(value[0], value[1]);
+	                      	}*/
+	 
+			}
+	 
+			
+	 
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	 
+		System.out.println("Done");
+	  }
+	
+		
+		
+		
+	    
+}

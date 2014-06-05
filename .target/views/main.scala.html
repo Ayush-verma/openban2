@@ -1,0 +1,169 @@
+@(title: String)(content: Html)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@title</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+        <!-- this should go after your </body> -->
+		<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jquery.datetimepicker.css")">
+		<script src="@routes.Assets.at("javascripts/jquery.js")" type="text/javascript"></script>
+		<script src="@routes.Assets.at("javascripts/jquery.datetimepicker.js")" type="text/javascript"></script>
+        
+        
+		<script src="http://code.highcharts.com/stock/highstock.js"></script>
+		<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
+
+        
+        <!--
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        
+        <script src="http://code.highcharts.com/highcharts.js"></script>
+		<script src="http://code.highcharts.com/modules/exporting.js"></script>
+        
+        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+        -->
+        
+    
+    </head>
+    <body style="background-color:lightyellow;">
+        @content
+    <hr>
+    <form action="/post" id="searchForm">
+  	<h2>Enter Start Date      <input type="text" id="datepicker" name="start" placeholder="Click To Select"></h2>
+  	<h2>Enter End Date        <input type="text" id="date" name="end" placeholder="Click To Select"></h2>
+  	<input type="submit" value="SUBMIT">
+	</form>
+	<hr>
+	<!-- the result of the search will be rendered inside this div -->
+    <div id="container" style="height: 450px; min-width: 600px"> <img id="image" height="450 width="1000" src="@routes.Assets.at("images/Untitled.png")"/></div>
+   
+	<script>
+		
+			jQuery('#datepicker').datetimepicker({
+			startDate:'-1970/06/03',
+			minDate:'2014/01/01',
+  			maxDate:'2014/01/10',
+			format:'unixtime'
+			});
+  		
+			jQuery('#date').datetimepicker({
+  			startDate:'-1970/05/29',
+  			minDate:'2014/01/01',
+  			maxDate:'2014/01/10',
+  			format:'unixtime'
+			});
+		
+		
+		$("#searchForm").submit(function(event){
+ 		event.preventDefault();
+ 	
+ 		var $form = $( this ),
+  		start = $form.find( "input[name='start']" ).val(),
+  		end = $form.find( "input[name='end']" ).val(),
+    	url = $form.attr("action");
+    	
+    	startValue=Number(start);
+    	endValue=Number(end);
+    	if (startValue>endValue){
+    	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
+    	location.reload();
+    	}
+    	
+    	var posting = $.post( url, { 'Start' : start , 'End' : end }, function(data){
+    					var chartOptions = {
+    					chart: {
+				            renderTo: 'container',
+				            type: 'line',
+				            
+				        },
+				        title: {
+				            text: 'Live random data'
+				        },
+				       	rangeSelector: {
+        						buttons: [{
+											type: 'second',
+											count: 1,
+											text: 'sec'
+										}, {
+											type: 'minute',
+											count: 1,
+											text: 'min'
+										}, {
+											type: 'hour',
+											count: 1,
+											text: 'hr'
+										}, {
+											type: 'day',
+											text: 'day'
+										}, {
+											type: 'all',
+											text: 'All'
+										}],
+						    	
+					    },
+					    scrollbar: {
+							barBackgroundColor: 'gray',
+							barBorderRadius: 7,
+							barBorderWidth: 0,
+							buttonBackgroundColor: 'gray',
+							buttonBorderWidth: 0,
+							buttonArrowColor: 'yellow',
+							buttonBorderRadius: 7,
+							rifleColor: 'yellow',
+							trackBackgroundColor: 'white',
+							trackBorderWidth: 1,
+							trackBorderColor: 'silver',
+							trackBorderRadius: 7
+					    },
+       					navigator: {
+					    	handles: {
+					    		backgroundColor: 'yellow',
+					    		borderColor: 'red'
+					    	}
+					    },
+        				xAxis: {
+        					type: 'datetime',
+        					
+        					
+        				},
+        				yAxis: {
+        					allowDecimals :true
+        				},
+				        series: [{
+				        			data:[],
+				        			pointInterval: 1000
+				        			
+				        			
+				        		}]
+				       };			
+				     
+				      var chart = new Highcharts.StockChart(chartOptions);
+    				  var points = $.parseJSON(data);
+    				  $.each(points, function( key, value ) {
+    				  			
+    				  			num=Number(key)*1000;
+    				  			var date = new Date(num);
+    				  			
+  			        			chart.series[0].addPoint([date,Number(value)], false);
+  			        						
+           				
+  								});
+  						$("#image").hide();		
+  						chart.redraw();
+					});
+    									
+    				
+    			
+		});
+		
+	
+	</script>
+	    
+  </body>
+</html>
