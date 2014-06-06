@@ -2,23 +2,18 @@ package controllers;
 
 import play.*;
 import play.mvc.*;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import play.api.*;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-//import java.lang.reflect.*;
-
-//import play.libs.Json;
 import views.html.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+//import java.lang.reflect.*;
 
 
 public class Application extends Controller {
@@ -90,16 +85,6 @@ public class Application extends Controller {
        //Class aClass = Class.forName("global");
        //Field field = aClass.getField("maps");
        
-    
         return ok(json);
     }
-
-	//public static void main(String[] args) {
-		//import org.codehaus.jackson.JsonNode;
-		
-	//}
-    
-    /*public static Result try() {
-    	return ok(index.render("openban"));
-    }*/
 }

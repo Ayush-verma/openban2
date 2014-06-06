@@ -12,17 +12,12 @@ public class Global extends GlobalSettings{
 	@Override
 	  public void onStart(Application app) {
 	   
-	 	//String From="1390038021";
-	    //String To="1390038012";
 	    //boolean Started=false;
 		String csvFile = "C:\\Users\\hp\\Desktop\\data_meter.csv\\data_meter.csv";
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy = ",";
-		
 		Map<String, String> maps = new HashMap<String, String>();
-		
-		
 		try {
 	 
 	 		br = new BufferedReader(new FileReader(csvFile));
