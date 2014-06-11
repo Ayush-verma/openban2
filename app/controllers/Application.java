@@ -2,24 +2,43 @@ package controllers;
 
 import play.*;
 import play.mvc.*;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import play.api.*;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+
 import views.html.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-//import java.lang.reflect.*;
 
 
 public class Application extends Controller {
 
+	
+	
+	
     public static Result index() {
         return ok(index.render("OpenBan"));
+    }
+    
+    public static Result device() {
+    	Map<String,String[]> parameters1 = request().body().asFormUrlEncoded();
+    	System.out.println(parameters1.isEmpty());
+    	System.out.println(request().body().asRaw());
+    	System.out.println(request().body().asMultipartFormData());
+    	System.out.println(request().body().asJson());
+    	System.out.println(request().body().asFormUrlEncoded());
+    	System.out.println(request().body().asText());
+    	System.out.println(request().body());
+    	System.out.println("this?");
+    	return ok("aa");
     }
 
     public static Result post() throws ClassNotFoundException, NoSuchFieldException, SecurityException {
@@ -80,11 +99,7 @@ public class Application extends Controller {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-       // Global a = new Global();
-       //Class aClass = Class.forName("global");
-       //Field field = aClass.getField("maps");
-       
+     
         return ok(json);
     }
 }

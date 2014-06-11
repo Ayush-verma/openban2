@@ -6,16 +6,19 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import controllers.Application;
+
 
 public class Global extends GlobalSettings{
 	
-	@Override
-	  public void onStart(Application app) {
+	
+	public void onStart(Application app) {
 	   
 	    //boolean Started=false;
 		String csvFile = "C:\\Users\\hp\\Desktop\\data_meter.csv\\data_meter.csv";
 		BufferedReader br = null;
 		String line = "";
+
 		String cvsSplitBy = ",";
 		Map<String, String> maps = new HashMap<String, String>();
 		try {

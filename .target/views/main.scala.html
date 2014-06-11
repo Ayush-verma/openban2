@@ -14,6 +14,8 @@
 		<script src="@routes.Assets.at("javascripts/jquery.js")" type="text/javascript"></script>
 		<script src="@routes.Assets.at("javascripts/jquery.datetimepicker.js")" type="text/javascript"></script>
         
+        
+        
         <!--Adding required libraries for HighCharts -->
 		<script src="http://code.highcharts.com/stock/highstock.js"></script>
 		<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>        
@@ -40,7 +42,9 @@
 	<hr>
 	<!-- The HighChart after the Ajax request will be rendered inside this div -->
     <div id="container" style="height: 450px; min-width: 600px"> <img id="image" height="450 width="1000" src="@routes.Assets.at("images/Untitled.png")"/></div>
-   
+    <button type="button" onclick="device()">Show Device Usage Information</button>
+    <div id="container2" style="height: 450px; min-width: 600px"></div>
+    
 	<script>
 		
 			jQuery('#datepicker').datetimepicker({
@@ -58,13 +62,22 @@
 			});
 		
 		
+		var start;
+		var end;
+		var deviceA=[];
+    	var deviceB=[];
+    	var deviceC=[];
+    	var deviceD=[];
+    	var selectStart;
+		var selectEnd;
+		
 		$("#searchForm").submit(function(event){
  		event.preventDefault();
  	
- 		var $form = $( this ),
-  		start = $form.find( "input[name='start']" ).val(),
-  		end = $form.find( "input[name='end']" ).val(),
-    	url = $form.attr("action");
+ 		var $form = $( this );
+  		start = $form.find( "input[name='start']" ).val();
+  		end = $form.find( "input[name='end']" ).val();
+    	var url = $form.attr("action");
     	
     	var startValue=Number(start);
     	var endValue=Number(end);
@@ -72,22 +85,71 @@
     	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
     	location.reload();
     	}
+    	
     	var posting = $.post( url, { 'Start' : start , 'End' : end }, function(data){
-    					var chartOptions = {
+    					Highcharts.setOptions({
+							global: {
+								useUTC: false
+							}
+						});
+    					var sensorchartOptions = {
     					chart: {
 				            renderTo: 'container',
 				            type: 'line',
-				            
+				            zoomType: 'x',
+					        events: {
+					        	selection: function(event) {
+					        		event.preventDefault();
+					        		
+					                if (event.xAxis) {
+					                	var select_S = new Date(event.xAxis[0].min);
+					                	var select_E = new Date(event.xAxis[0].max);
+					                	selectStart = (select_S.getTime()-select_S.getMilliseconds())/1000;
+					                	selectEnd   = (select_E.getTime()-select_E.getMilliseconds())/1000;
+					                    var device = prompt("Please choose the INDEX of the Device from the following\n1.Item 1\n2.Item 2\n3.Item 3\n4.Item 4","Eg. 1 for Item 1");
+									    if (device != null) {
+									      	switch(Number(device)){
+									        	case 1:
+									        		alert("Device Usage Saved");
+									        		for (var i=selectStart; i <= selectEnd; i++){
+									        			deviceA.push(i);
+									        		}
+									        	break;
+									        	case 2:
+									        		alert("Device Usage Saved");
+									        		for (var i=selectStart; i <= selectEnd; i++){
+									        			deviceB.push(i);
+									        		}
+									        		break;
+									        	case 3:
+									        		alert("Device Usage Saved");
+									        		for (var i=selectStart; i <= selectEnd; i++){
+									        			deviceC.push(i);
+									        		}
+									        		break;
+									        	case 4:
+									        		alert("Device Usage Saved");
+									        		for (var i=selectStart; i <= selectEnd; i++){
+									        			deviceD.push(i);
+									        		}
+									        		break;
+									        	default:
+									        		alert("Invalid Input !!! Please Try Again");
+									        	
+									        }
+									        
+									        
+									    }
+					                } 
+					        	}
+					      	 
+				    		},
 				        },
 				        title: {
-				            text: 'Live random data'
+				            text: 'SENSOR DATA'
 				        },
 				       	rangeSelector: {
         						buttons: [{
-											type: 'second',
-											count: 1,
-											text: 'sec'
-										}, {
 											type: 'minute',
 											count: 1,
 											text: 'min'
@@ -154,16 +216,16 @@
         					allowDecimals :true
         				},
 				        series: [{
-				        			data:[],
-				        			pointInterval: 1000
+				        			data:[]
+				        			
 				        		}]
 				       };			
 				     
-				      var chart = new Highcharts.StockChart(chartOptions);
+				      var chart = new Highcharts.StockChart(sensorchartOptions);
     				  var points = $.parseJSON(data);
     				  $.each(points, function( key, value ) {
     				  			num=Number(key)*1000;
-    				  			var date = new Date(num);
+    				  			var date = new Date(num).getTime();
     				  			chart.series[0].addPoint([date,Number(value)], false);
   			        			});
   								
@@ -176,6 +238,141 @@
   					 });					
     				
 		});
+		
+		function device(){
+		var devicechartOptions = {
+    					chart: {
+				            renderTo: 'container2',
+				            type: 'line',
+				        },
+				        title: {
+				            text: 'DEVICE USAGE DATA'
+				        },
+				       	rangeSelector: {
+        						buttons: [{
+											type: 'minute',
+											count: 1,
+											text: 'min'
+										}, {
+											type: 'hour',
+											count: 1,
+											text: 'hr'
+										}, {
+											type: 'day',
+											text: 'day'
+										}, {
+											type: 'all',
+											text: 'All'
+										}],
+								buttonTheme: { // styles for the buttons
+								    		fill: 'none',
+								    		stroke: 'none',
+								    		'stroke-width': 0,
+								    		r: 8,
+								    		style: {
+								    			color: '#039',
+								    			fontWeight: 'bold'
+								    		},
+								    		states: {
+								    			hover: {
+								    			},
+								    			select: {
+								    				fill: '#039',
+								    				style: {
+								    					color: 'white'
+								    				}
+								    			}
+								    		}
+								    	},
+								 inputEnabled: false
+						    	
+					    },
+					    scrollbar: {
+							barBackgroundColor: 'gray',
+							barBorderRadius: 7,
+							barBorderWidth: 0,
+							buttonBackgroundColor: 'gray',
+							buttonBorderWidth: 0,
+							buttonArrowColor: 'yellow',
+							buttonBorderRadius: 7,
+							rifleColor: 'yellow',
+							trackBackgroundColor: 'white',
+							trackBorderWidth: 1,
+							trackBorderColor: 'silver',
+							trackBorderRadius: 7
+					    },
+       					navigator: {
+					    	handles: {
+					    		backgroundColor: 'yellow',
+					    		borderColor: 'red'
+					    	}
+					    },
+        				xAxis: {
+        					type: 'datetime'
+        					
+        					
+        				},
+        				yAxis: {
+        					allowDecimals :false
+        				},
+				        series: [{
+				        			data: []
+				        		},{
+						            data: []
+						        }, {
+						            data: []
+						        }, {
+						            data: []	
+				        		}]
+				       };			
+				     
+				      var chart2 = new Highcharts.StockChart(devicechartOptions);
+    				  for (var i=Number(start);i<Number(end);i++){
+    				  		var containsA=deviceA.indexOf(i);
+    				  		var containsB=deviceB.indexOf(i);
+    				  		var containsC=deviceC.indexOf(i);
+    				  		var containsD=deviceD.indexOf(i);
+    				  		var milliSec=Number(i)*1000;
+    				  		var dateX = new Date(milliSec).getTime();
+    				   	  if(containsA>-1){
+    				   	  		chart2.series[0].addPoint([dateX,1], false);
+    				   	  }
+    				   	  else{
+    				   	  		chart2.series[0].addPoint([dateX,0], false);
+    				   	  }
+    				   	  if(containsB>-1){
+    				   	  		chart2.series[1].addPoint([dateX,1], false);
+    				   	  }
+    				   	  else{
+    				   	  		chart2.series[1].addPoint([dateX,0], false);
+    				   	  }
+    				   	  if(containsC>-1){
+    				   	  		chart2.series[2].addPoint([dateX,1], false);
+    				   	  }
+    				   	  else{
+    				   	  		chart2.series[2].addPoint([dateX,0], false);
+    				   	  }
+    				   	  if(containsD>-1){
+    				   	  		chart2.series[3].addPoint([dateX,1], false);
+    				   	  }
+    				   	  else{
+    				   	  		chart2.series[3].addPoint([dateX,0], false);
+    				   	  }
+    				   	  
+    				  }
+    				  var jsona= JSON.stringify(deviceA);
+  							alert(jsona);
+  							alert(deviceA);	
+  					  chart2.redraw();
+  					  var sent = $.post("/device", [deviceA], function(data){alert("hi"+data)});
+  					  
+		}
+		
+		
+		
+		
+		
+		
 	</script>
   </body>
 </html>
