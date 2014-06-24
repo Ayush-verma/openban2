@@ -7,14 +7,31 @@
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_diagonals-thick_18_b81900_40x40.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_diagonals-thick_20_666666_40x40.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_flat_10_000000_40x100.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_glass_100_f6f6f6_1x400.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_glass_100_fdf5ce_1x400.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_glass_65_ffffff_1x400.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_gloss-wave_35_f6a828_500x100.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_highlight-soft_100_eeeeee_1x100.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-bg_highlight-soft_75_ffe45c_1x100.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-icons_222222_256x240.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-icons_228ef1_256x240.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-icons_ef8c08_256x240.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-icons_ffd27a_256x240.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("stylesheets/images/ui-icons_ffffff_256x240.png")">
         
         <!--Adding required libraries for DateTime picker UI  -->
 		<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jquery.datetimepicker.css")">
 		<script src="@routes.Assets.at("javascripts/jquery.js")" type="text/javascript"></script>
 		<script src="@routes.Assets.at("javascripts/jquery.datetimepicker.js")" type="text/javascript"></script>
-        
-        
+		
+		<script src="@routes.Assets.at("javascripts/jquery-ui-1.9.2.custom.js")" type="text/javascript"></script>
+		<script src="@routes.Assets.at("javascripts/jquery-ui-1.9.2.custom.min.js")" type="text/javascript"></script>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/jquery-ui-1.9.2.custom.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/jquery-ui-1.9.2.custom.min.css")">
+       
         
         <!--Adding required libraries for HighCharts -->
 		<script src="http://code.highcharts.com/stock/highstock.js"></script>
@@ -35,58 +52,68 @@
         @content
     <hr>
     <form action="/post" id="searchForm">
-  	<h2>Enter Start Date      <input type="text" id="datepicker" name="start" placeholder="Click To Select"></h2>
-  	<h2>Enter End Date        <input type="text" id="date" name="end" placeholder="Click To Select"></h2>
+  	<h2>Enter Start Date      <input type="text" id="datepicker1" name="start" placeholder="Click To Select"></h2>
+  	<h2>Enter End Date        <input type="text" id="datepicker2" name="end" placeholder="Click To Select"></h2>
   	<input type="submit" value="SUBMIT">
 	</form>
 	<hr>
 	<!-- The HighChart after the Ajax request will be rendered inside this div -->
+	
+	<div id="dialogUI" title="fruits">
+	<p><label><input type="radio" name="fruits" value="Item 1">Item 1</label></p>
+	<p><label><input type="radio" name="fruits" value="Item 2">Item 2</label></p>
+	<p><label><input type="radio" name="fruits" value="Item 3">Item 3</label></p>
+	<p><label><input type="radio" name="fruits" value="Item 4">Item 4</label></p>
+	</div>
+    
     <div id="container" style="height: 450px; min-width: 600px"> <img id="image" height="450 width="1000" src="@routes.Assets.at("images/Untitled.png")"/></div>
-    <button type="button" onclick="device()">Show Device Usage Information</button>
+    <button type="button" id="save">Save Annotations</button>
+    <button type="button" id="show">Show Saved Annotations</button>
+    <button type="button" id="temp">Show </button>
     <div id="container2" style="height: 450px; min-width: 600px"></div>
     
 	<script>
-		
-			jQuery('#datepicker').datetimepicker({
+		$(document).ready(function(){
+			
+            $( this ).find('#dialogUI').hide();
+	
+			jQuery('#datepicker1').datetimepicker({
 			startDate:'-1970/06/03',
 			minDate:'2014/01/01',
   			maxDate:'2014/01/10',
 			format:'unixtime'
 			});
   		
-			jQuery('#date').datetimepicker({
+			jQuery('#datepicker2').datetimepicker({
   			startDate:'-1970/05/29',
   			minDate:'2014/01/01',
   			maxDate:'2014/01/10',
   			format:'unixtime'
 			});
-		
-		
+		});
+
 		var start;
 		var end;
-		var deviceA=[];
-    	var deviceB=[];
-    	var deviceC=[];
-    	var deviceD=[];
+		var deviceMapA = {};
+    	var deviceMapB = {};
+    	var deviceMapC = {};
+    	var deviceMapD = {};
+    	
     	var selectStart;
 		var selectEnd;
+		var chart;
 		
-		$("#searchForm").submit(function(event){
- 		event.preventDefault();
- 	
- 		var $form = $( this );
-  		start = $form.find( "input[name='start']" ).val();
-  		end = $form.find( "input[name='end']" ).val();
-    	var url = $form.attr("action");
-    	
+		
+		function drawchart(){
+    	alert("In drawchart");
     	var startValue=Number(start);
     	var endValue=Number(end);
     	if (startValue>endValue){
-    	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
-    	location.reload();
+	    	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
+	    	location.reload();
     	}
-    	
-    	var posting = $.post( url, { 'Start' : start , 'End' : end }, function(data){
+    	var posting = $.post( "/post", { 'Start' : start , 'End' : end }, function(data){
+    					
     					Highcharts.setOptions({
 							global: {
 								useUTC: false
@@ -98,40 +125,71 @@
 				            type: 'line',
 				            zoomType: 'x',
 					        events: {
+					        	
 					        	selection: function(event) {
 					        		event.preventDefault();
 					        		
 					                if (event.xAxis) {
+					                	var len,value;
 					                	var select_S = new Date(event.xAxis[0].min);
 					                	var select_E = new Date(event.xAxis[0].max);
 					                	selectStart = (select_S.getTime()-select_S.getMilliseconds())/1000;
 					                	selectEnd   = (select_E.getTime()-select_E.getMilliseconds())/1000;
-					                    var device = prompt("Please choose the INDEX of the Device from the following\n1.Item 1\n2.Item 2\n3.Item 3\n4.Item 4","Eg. 1 for Item 1");
+					                    /* $("#dialogUI").dialog({
+										        resizable: false,
+										        modal: true,
+										        title: "Confirm Selection",
+										        height: 350,
+										        width: 600,
+										        buttons: {
+										            "Yes": function () {
+										                len = document.getElementsByName("fruits").length;
+										                for (var i = 0 ; i < len ; i++){
+										                	if (document.getElementsByName("fruits")[i].checked){
+										                		value = document.getElementsByName("fruits")[i].value;
+										                		alert(value);
+										                		break;
+										                	}	
+										                }
+										                
+										            },
+										                "No": function () {
+										                $(this).dialog('close');
+										                
+										            }
+										        }
+										    });*/
+										    //alert("here");
+					                   	var device = prompt("Please choose the INDEX of the Device from the following\n1.Item 1\n2.Item 2\n3.Item 3\n4.Item 4","Eg. 1 for Item 1");
 									    if (device != null) {
 									      	switch(Number(device)){
 									        	case 1:
 									        		alert("Device Usage Saved");
 									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceA.push(i);
+									        			deviceMapA[i] = 1;
 									        		}
-									        	break;
+									        		plot(selectStart,selectEnd,1);
+									        		break;
 									        	case 2:
 									        		alert("Device Usage Saved");
 									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceB.push(i);
+									        			deviceMapB[i] = 1;
 									        		}
+									        		plot(selectStart,selectEnd,2);
 									        		break;
 									        	case 3:
 									        		alert("Device Usage Saved");
 									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceC.push(i);
+									        			deviceMapC[i] = 1;
 									        		}
+									        		plot(selectStart,selectEnd,3);
 									        		break;
 									        	case 4:
 									        		alert("Device Usage Saved");
 									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceD.push(i);
+									        			deviceMapD[i] = 1;
 									        		}
+									        		plot(selectStart,selectEnd,4);
 									        		break;
 									        	default:
 									        		alert("Invalid Input !!! Please Try Again");
@@ -209,8 +267,6 @@
 					    },
         				xAxis: {
         					type: 'datetime'
-        					
-        					
         				},
         				yAxis: {
         					allowDecimals :true
@@ -221,7 +277,7 @@
 				        		}]
 				       };			
 				     
-				      var chart = new Highcharts.StockChart(sensorchartOptions);
+				      chart = new Highcharts.StockChart(sensorchartOptions);
     				  var points = $.parseJSON(data);
     				  $.each(points, function( key, value ) {
     				  			num=Number(key)*1000;
@@ -230,6 +286,7 @@
   			        			});
   								
   					  chart.redraw();
+  					  alert("Press Show");
 					 })
 					  .fail(function(error) {
 					  alert("Ajax Request Failed\nError Status Code : "+ 
@@ -237,9 +294,227 @@
 					  
   					 });					
     				
+    		}		
+		
+		
+		$("#searchForm").submit(function(event){
+ 		event.preventDefault();
+ 	
+ 		var $form = $( this );
+  		start = $form.find( "input[name='start']" ).val();
+  		end = $form.find( "input[name='end']" ).val();
+    	drawchart();
+    	
 		});
 		
-		function device(){
+		
+		
+		function plot(start,stop,c){
+		switch(c){
+			case 1:
+			case 'deviceA.csv': 
+				chart.xAxis[0].addPlotBand({
+						from: start*1000,
+						to: stop*1000,
+						color:'#FF83FF',
+						id:'deviceA',
+						label: {
+	                    text: 'deviceA',
+	                    style: {
+	                        color: 'blue',
+	                        fontWeight: 'bold'
+		                    }
+		                },
+		                events: {
+		                    click: function(e) {
+		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
+		                        if(confirm == true){
+		                        		$.ajax({
+												  type: "POST",
+												  url: '/delete',
+												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceA.csv'},
+												  success:function(data){
+												  		alert("Deletion Successful");
+												  		location.reload();
+												  }
+								 	 	 });
+								 	}//if close	 	 
+		                        }//click close
+		                        
+						  }//event close
+					})//plotband close
+				
+					break;
+			case 2:
+			case 'deviceB.csv':
+			chart.xAxis[0].addPlotBand({
+						from: start*1000,
+						to: stop*1000,
+						color:'#FFFF66',
+						id:'deviceB',
+						label: {
+	                    text: 'deviceB',
+	                    style: {
+	                        color: 'blue',
+	                        fontWeight: 'bold'
+		                    }
+		                }, 
+						events: {
+		                    click: function(e) {
+		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
+		                        if(confirm == true){
+		                        		$.ajax({
+												  type: "POST",
+												  url: '/delete',
+												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceB.csv'},
+												  success:function(data){
+												  		alert("Deletion Successful");
+												  		locarion.reload();
+												  }
+								 	 	 });
+								 	}//if close	 	 
+		                        }//click close
+		                        
+						  }//event close
+					})
+					
+					break;
+			case 3:
+			case 'deviceC.csv':
+			chart.xAxis[0].addPlotBand({
+						from: start*1000,
+						to: stop*1000,
+						color:'#5CE68A',
+						id:'deviceC',
+						label: {
+	                    text: 'deviceC',
+	                    style: {
+	                        color: 'blue',
+	                        fontWeight: 'bold'
+		                    }
+		                }, 
+					    events: {
+		                    click: function(e) {
+		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
+		                        if(confirm == true){
+		                        		$.ajax({
+												  type: "POST",
+												  url: '/delete',
+												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceC.csv'},
+												  success:function(data){
+												  		alert("Deletion Successful");
+												  		locarion.reload();
+												  }
+								 	 	 });
+								 	}//if close	 	 
+		                        }//click close
+		                        
+						  }//event close
+					})
+					
+					break;
+			case 4:
+			case 'deviceD.csv':
+			chart.xAxis[0].addPlotBand({
+						from: start*1000,
+						to: stop*1000,
+						color:'#8BFFFF',
+						id:'deviceD',
+						label: {
+	                    text: 'deviceD',
+	                    style: {
+	                        color: 'blue',
+	                        fontWeight: 'bold'
+		                    }
+		                }, 
+					    events: {
+		                    click: function(e) {
+		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
+		                        if(confirm == true){
+		                        		$.ajax({
+												  type: "POST",
+												  url: '/delete',
+												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceD.csv'},
+												  success:function(data){
+												  		alert("Deletion Successful");
+												  		locarion.reload();
+												  }
+								 	 	 });
+								 	}//if close	 	 
+		                        }//click close
+		                        
+						  }//event close
+					})
+				
+					break;		
+			
+				
+				
+		   	   }
+		
+		}
+		
+		$('#show').click(function() {
+		var labelname = [];
+		console.log("hereeeeeeeeeeeee");
+		var from = [];
+    	var to = [];
+    	var i = 0;
+    	console.log(from[0]+":"+to[0]+":"+labelname[0])
+			jQuery.ajax({type: "GET",
+						            url: "/show",
+						            success: function(data){
+						            	console.log(data);
+						                 var myData = $.parseJSON(data);
+										  $.each(myData, function( key, value ) {   
+    										 var start = true;
+    										 var prev;
+    										  
+    										  labelname.push(key);
+    										 $.each(value, function( k, v ) { 
+											    //console.log(k);
+											     if(start){
+											     	from[i] = Number(k);
+											     	start = false;
+												 }
+												 else{
+													  if (!start && prev !=  (Number(k)-1)){
+														  to[i] = prev;
+														  i++;
+														  labelname.push(key);
+														  console.log("Number"+Number(k))
+														  from[i]=Number(k);
+														  
+													 } 
+													  if (!start){ 
+													  	  to[i] = Number(k);
+													 }
+												}
+												prev = Number(k);
+										    });
+										    i++;	
+										    
+										    
+										});
+										 
+									  	start = Math.min.apply(Math, from);
+									   	end = Math.max.apply(Math, to);
+									   	drawchart();
+									   	//alert("here");
+									   	
+									   	$('#temp').click(function(){
+									 	for (var j = 0; j < from.length;j++){
+										  	plot(from[j],to[j],labelname[j]);
+										  	console.log(labelname[j]+":"+from[j]+":"+to[j]);
+										   	}
+										});			                
+						            }
+						      });
+						      
+			})
+		
+		
+		$('#save').click(function() {
 		var devicechartOptions = {
     					chart: {
 				            renderTo: 'container2',
@@ -328,45 +603,56 @@
 				     
 				      var chart2 = new Highcharts.StockChart(devicechartOptions);
     				  for (var i=Number(start);i<Number(end);i++){
-    				  		var containsA=deviceA.indexOf(i);
-    				  		var containsB=deviceB.indexOf(i);
-    				  		var containsC=deviceC.indexOf(i);
-    				  		var containsD=deviceD.indexOf(i);
-    				  		var milliSec=Number(i)*1000;
-    				  		var dateX = new Date(milliSec).getTime();
-    				   	  if(containsA>-1){
+    				  	  var milliSec=Number(i)*1000;
+    				  	  var dateX = new Date(milliSec).getTime();
+    				   	  
+    				   	  if (i in deviceMapA) {
     				   	  		chart2.series[0].addPoint([dateX,1], false);
-    				   	  }
-    				   	  else{
+    				   	  } else {
     				   	  		chart2.series[0].addPoint([dateX,0], false);
     				   	  }
-    				   	  if(containsB>-1){
+    				   	  if (i in deviceMapB) {
     				   	  		chart2.series[1].addPoint([dateX,1], false);
-    				   	  }
-    				   	  else{
+    				   	  } else {
     				   	  		chart2.series[1].addPoint([dateX,0], false);
     				   	  }
-    				   	  if(containsC>-1){
+    				   	  if (i in deviceMapC) {
     				   	  		chart2.series[2].addPoint([dateX,1], false);
-    				   	  }
-    				   	  else{
+    				   	  } else {
     				   	  		chart2.series[2].addPoint([dateX,0], false);
     				   	  }
-    				   	  if(containsD>-1){
+    				   	  if (i in deviceMapD) {
     				   	  		chart2.series[3].addPoint([dateX,1], false);
-    				   	  }
-    				   	  else{
+    				   	  } else {
     				   	  		chart2.series[3].addPoint([dateX,0], false);
     				   	  }
     				   	  
+    				   	  
     				  }
-    				  var jsona= JSON.stringify(deviceA);
-  							alert(jsona);
-  							alert(deviceA);	
-  					  chart2.redraw();
-  					  var sent = $.post("/device", [deviceA], function(data){alert("hi"+data)});
+    				  		chart2.redraw();
+    				  	
+  					  		var annotated = {};
+  					  		annotated.start = start;
+  					  		annotated.end = end;
+  					  		annotated.streamname = "meter data";
+  					  		annotated.names = {"deviceA":1,"deviceB":1,"deviceC":1,"deviceD":1}
+  					  		annotated.deviceA = deviceMapA;
+  					  		annotated.deviceB = deviceMapB;
+  					  	    annotated.deviceC = deviceMapC;
+  					  	    annotated.deviceD = deviceMapD;
+  					  	    
+  					  	    var annotatedJson= JSON.stringify(annotated);
+  							jQuery.ajax({type: "POST",
+						            url: "/save",
+						            data: annotatedJson,
+						            dataType: "json",
+						            contentType: "application/json; charset=utf-8",
+						            success: function(data){
+						                alert("Changes been succesfully saved"+data);
+						            }
+						      });
   					  
-		}
+		});
 		
 		
 		
