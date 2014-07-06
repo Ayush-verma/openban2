@@ -51,7 +51,13 @@
     <body style="background-color:lightyellow;">
         @content
     <hr>
+    
+    
+    
     <form action="/post" id="searchForm">
+    <h2>Select Data Series <select id="data_names">
+		</select>
+	</h2>
   	<h2>Enter Start Date      <input type="text" id="datepicker1" name="start" placeholder="Click To Select"></h2>
   	<h2>Enter End Date        <input type="text" id="datepicker2" name="end" placeholder="Click To Select"></h2>
   	<input type="submit" value="SUBMIT">
@@ -59,12 +65,7 @@
 	<hr>
 	<!-- The HighChart after the Ajax request will be rendered inside this div -->
 	
-	<div id="dialogUI" title="fruits">
-	<p><label><input type="radio" name="fruits" value="Item 1">Item 1</label></p>
-	<p><label><input type="radio" name="fruits" value="Item 2">Item 2</label></p>
-	<p><label><input type="radio" name="fruits" value="Item 3">Item 3</label></p>
-	<p><label><input type="radio" name="fruits" value="Item 4">Item 4</label></p>
-	</div>
+	<div id="dialogUI" title="fruits"></div>
     
     <div id="container" style="height: 450px; min-width: 600px"> <img id="image" height="450 width="1000" src="@routes.Assets.at("images/Untitled.png")"/></div>
     <button type="button" id="save">Save Annotations</button>
@@ -74,26 +75,17 @@
     
 	<script>
 		$(document).ready(function(){
-			
-            $( this ).find('#dialogUI').hide();
-	
-			jQuery('#datepicker1').datetimepicker({
-			startDate:'-1970/06/03',
-			minDate:'2014/01/01',
-  			maxDate:'2014/01/10',
-			format:'unixtime'
-			});
-  		
-			jQuery('#datepicker2').datetimepicker({
-  			startDate:'-1970/05/29',
-  			minDate:'2014/01/01',
-  			maxDate:'2014/01/10',
-  			format:'unixtime'
-			});
-		});
-
+		
+		
 		var start;
 		var end;
+		
+		var theOptions = [];	
+		var dataSeries;
+		var annotationNames = [];
+		
+		var annotations = {};
+		
 		var deviceMapA = {};
     	var deviceMapB = {};
     	var deviceMapC = {};
@@ -103,16 +95,70 @@
 		var selectEnd;
 		var chart;
 		
+					
+            $( this ).find('#dialogUI').hide();
+			
+			jQuery.ajax({type: "GET",
+			      async: false,
+			      url: "/data",
+			      success: function(data){
+						var myData = $.parseJSON(data);
+						$.each(myData, function( key, value ) {
+								$.each(value, function(k,v){
+									theOptions.push(v);
+									});
+							});		
+			          }
+			});
+			
+			var num,theSelect,anOption;
+			theSelect = document.getElementById('data_names');
+			for (i = 0; i < theOptions.length; i++) {
+				
+			    anOption = document.createElement('option');
+			    anOption.value = theOptions[i];;
+			    anOption.innerHTML = theOptions[i];
+			    theSelect.appendChild(anOption);
+			}
+			dataSeries=theSelect.value;
+			theSelect.onchange = function (){
+					dataSeries=theSelect.value;
+					console.log(dataSeries);
+					
+			}
+			
+			
+			
+			jQuery('#datepicker1').datetimepicker({
+			startDate:'-1970/06/29',
+			minDate:'2014/01/01',
+  			maxDate:'2014/01/10',
+			format:'unixtime'
+			});
+  		
+			jQuery('#datepicker2').datetimepicker({
+  			startDate:'-1970/06/29',
+  			minDate:'2014/01/01',
+  			maxDate:'2014/01/10',
+  			format:'unixtime'
+			});
+		
+
+		
+		
+		
+		
 		
 		function drawchart(){
-    	alert("In drawchart");
+
     	var startValue=Number(start);
     	var endValue=Number(end);
     	if (startValue>endValue){
 	    	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
 	    	location.reload();
     	}
-    	var posting = $.post( "/post", { 'Start' : start , 'End' : end }, function(data){
+    	
+    	var posting = $.post( "/post", { 'Start' : start , 'End' : end , 'dataSeries' : dataSeries }, function(data){
     					
     					Highcharts.setOptions({
 							global: {
@@ -135,7 +181,7 @@
 					                	var select_E = new Date(event.xAxis[0].max);
 					                	selectStart = (select_S.getTime()-select_S.getMilliseconds())/1000;
 					                	selectEnd   = (select_E.getTime()-select_E.getMilliseconds())/1000;
-					                    /* $("#dialogUI").dialog({
+					                    $("#dialogUI").dialog({
 										        resizable: false,
 										        modal: true,
 										        title: "Confirm Selection",
@@ -157,52 +203,45 @@
 										                $(this).dialog('close');
 										                
 										            }
-										        }
-										    });*/
-										    //alert("here");
-					                   	var device = prompt("Please choose the INDEX of the Device from the following\n1.Item 1\n2.Item 2\n3.Item 3\n4.Item 4","Eg. 1 for Item 1");
-									    if (device != null) {
-									      	switch(Number(device)){
-									        	case 1:
-									        		alert("Device Usage Saved");
-									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceMapA[i] = 1;
-									        		}
-									        		plot(selectStart,selectEnd,1);
-									        		break;
-									        	case 2:
-									        		alert("Device Usage Saved");
-									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceMapB[i] = 1;
-									        		}
-									        		plot(selectStart,selectEnd,2);
-									        		break;
-									        	case 3:
-									        		alert("Device Usage Saved");
-									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceMapC[i] = 1;
-									        		}
-									        		plot(selectStart,selectEnd,3);
-									        		break;
-									        	case 4:
-									        		alert("Device Usage Saved");
-									        		for (var i=selectStart; i <= selectEnd; i++){
-									        			deviceMapD[i] = 1;
-									        		}
-									        		plot(selectStart,selectEnd,4);
-									        		break;
-									        	default:
-									        		alert("Invalid Input !!! Please Try Again");
-									        	
-									        }
-									        
-									        
-									    }
-					                } 
-					        	}
+										       },
+										       close: function () {
+														  if (value != null) {
+														    	var j=0;
+														    	var found = false;
+														    	while(j<annotationNames.length){
+														      		if(value == j){
+														        		alert("Device Usage Saved");
+														        		for (var i=selectStart; i <= selectEnd; i++){
+														        			deviceMapA[i] = 1;
+														        			annotations[annotationNames[j]][i]=1
+														        			
+														        		}
+														        		
+														        		
+														        		
+														        		found = true;
+														        	    plot(selectStart,selectEnd,j);
+														        	    
+														        	}
+														        	console.log("as");
+														        	console.log(annotations[annotationNames[j]]);
+														        	j++;
+														        	
+														        }//while
+														        if (!found){
+														        	alert("Invalid Input !!! \nPlease Try Again");
+														        }
+														        
+														  }//if
+														  
+										        }//close function
+										 });//dialog close
+										 
+					                } //if close
+					        	}//selection close
 					      	 
-				    		},
-				        },
+				    		},//events close
+				        },//chart
 				        title: {
 				            text: 'SENSOR DATA'
 				        },
@@ -303,6 +342,37 @@
  		var $form = $( this );
   		start = $form.find( "input[name='start']" ).val();
   		end = $form.find( "input[name='end']" ).val();
+  		
+  		jQuery.ajax({type: "POST",
+			      async: false,
+			      data: {'dataSeries' : dataSeries },
+			      url: "/annotations",
+			      success: function(data){
+			      		annotationNames.length = 0;
+			      		var i=0;
+			      		var foo = document.getElementById("dialogUI");
+			      		foo.innerHTML = "";
+						var myData = $.parseJSON(data);
+						$.each(myData, function( key, value ) {
+								$.each(value, function(k,v){
+									annotations[v]= {};
+									annotationNames.push(v);
+									
+								    var element = document.createElement("input");
+									element.setAttribute("type", "radio");
+								    element.setAttribute("value", i++);
+								    element.setAttribute("name", "fruits");			
+									var lb = document.createElement("br");
+									foo.appendChild(element);
+									foo.innerHTML += v;
+									foo.appendChild(lb);
+								    
+								});
+						});	
+						//console.log(annotations);	
+		          }
+		});
+  		
     	drawchart();
     	
 		});
@@ -310,159 +380,67 @@
 		
 		
 		function plot(start,stop,c){
-		switch(c){
-			case 1:
-			case 'deviceA.csv': 
-				chart.xAxis[0].addPlotBand({
-						from: start*1000,
-						to: stop*1000,
-						color:'#FF83FF',
-						id:'deviceA',
-						label: {
-	                    text: 'deviceA',
-	                    style: {
-	                        color: 'blue',
-	                        fontWeight: 'bold'
-		                    }
-		                },
-		                events: {
-		                    click: function(e) {
-		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
-		                        if(confirm == true){
-		                        		$.ajax({
-												  type: "POST",
-												  url: '/delete',
-												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceA.csv'},
-												  success:function(data){
-												  		alert("Deletion Successful");
-												  		location.reload();
-												  }
-								 	 	 });
-								 	}//if close	 	 
-		                        }//click close
-		                        
-						  }//event close
-					})//plotband close
-				
-					break;
-			case 2:
-			case 'deviceB.csv':
-			chart.xAxis[0].addPlotBand({
-						from: start*1000,
-						to: stop*1000,
-						color:'#FFFF66',
-						id:'deviceB',
-						label: {
-	                    text: 'deviceB',
-	                    style: {
-	                        color: 'blue',
-	                        fontWeight: 'bold'
-		                    }
-		                }, 
-						events: {
-		                    click: function(e) {
-		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
-		                        if(confirm == true){
-		                        		$.ajax({
-												  type: "POST",
-												  url: '/delete',
-												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceB.csv'},
-												  success:function(data){
-												  		alert("Deletion Successful");
-												  		locarion.reload();
-												  }
-								 	 	 });
-								 	}//if close	 	 
-		                        }//click close
-		                        
-						  }//event close
-					})
-					
-					break;
-			case 3:
-			case 'deviceC.csv':
-			chart.xAxis[0].addPlotBand({
-						from: start*1000,
-						to: stop*1000,
-						color:'#5CE68A',
-						id:'deviceC',
-						label: {
-	                    text: 'deviceC',
-	                    style: {
-	                        color: 'blue',
-	                        fontWeight: 'bold'
-		                    }
-		                }, 
-					    events: {
-		                    click: function(e) {
-		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
-		                        if(confirm == true){
-		                        		$.ajax({
-												  type: "POST",
-												  url: '/delete',
-												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceC.csv'},
-												  success:function(data){
-												  		alert("Deletion Successful");
-												  		locarion.reload();
-												  }
-								 	 	 });
-								 	}//if close	 	 
-		                        }//click close
-		                        
-						  }//event close
-					})
-					
-					break;
-			case 4:
-			case 'deviceD.csv':
-			chart.xAxis[0].addPlotBand({
-						from: start*1000,
-						to: stop*1000,
-						color:'#8BFFFF',
-						id:'deviceD',
-						label: {
-	                    text: 'deviceD',
-	                    style: {
-	                        color: 'blue',
-	                        fontWeight: 'bold'
-		                    }
-		                }, 
-					    events: {
-		                    click: function(e) {
-		                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
-		                        if(confirm == true){
-		                        		$.ajax({
-												  type: "POST",
-												  url: '/delete',
-												  data: {'Start' : start , 'Stop' : stop , 'Name' : 'deviceD.csv'},
-												  success:function(data){
-												  		alert("Deletion Successful");
-												  		locarion.reload();
-												  }
-								 	 	 });
-								 	}//if close	 	 
-		                        }//click close
-		                        
-						  }//event close
-					})
-				
-					break;		
-			
-				
-				
-		   	   }
 		
-		}
+		  if (c != null) {
+					var j=0;
+					while(j<annotationNames.length){
+					        if(c == j){
+					        		
+									chart.xAxis[0].addPlotBand({
+										from: start*1000,
+										to: stop*1000,
+										color:'#FF83FF',
+										id: annotationNames[j],
+										label: {
+					                    text: annotationNames[j],
+					                    style: {
+					                        color: 'blue',
+					                        fontWeight: 'bold'
+						                    }
+						                },
+						                events: {
+						                    click: function(e) {
+						                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
+						                        if(confirm == true){
+						                        		console.log(j);
+						                        		console.log(annotationNames[j]);
+						                        		$.ajax({
+						                        		
+																  type: "POST",
+																  url: '/delete',
+																  data: { 'Start' : start , 'Stop' : stop, 'dataSeries' : dataSeries, 'Name' : annotationNames[j]},
+																  success:function(data){
+																  		alert("Deletion Successful. \nReload data to veiw changes");
+																  		location.reload();
+																  }
+												 	 	 });
+												 	}//if close	 	 
+						                        }//click close
+						                        
+										  }//event close
+									})//plotband close
+							break;
+							}
+					      	
+					      	j++;
+														        	
+		            }//while
+		        
+			    
+          }//if
+		
+		
+}
 		
 		$('#show').click(function() {
 		var labelname = [];
-		console.log("hereeeeeeeeeeeee");
 		var from = [];
     	var to = [];
     	var i = 0;
     	console.log(from[0]+":"+to[0]+":"+labelname[0])
-			jQuery.ajax({type: "GET",
+			jQuery.ajax({type: "POST",
 						            url: "/show",
+						            data: {'dataSeries' : dataSeries },
 						            success: function(data){
 						            	console.log(data);
 						                 var myData = $.parseJSON(data);
@@ -499,14 +477,51 @@
 										 
 									  	start = Math.min.apply(Math, from);
 									   	end = Math.max.apply(Math, to);
+									   	
+									   	jQuery.ajax({type: "POST",
+										      async: false,
+										      data: {'dataSeries' : dataSeries },
+										      url: "/annotations",
+										      success: function(data){
+										      		annotationNames.length = 0;
+										      		var i=0;
+										      		var foo = document.getElementById("dialogUI");
+										      		foo.innerHTML = "";
+													var myData = $.parseJSON(data);
+													$.each(myData, function( key, value ) {
+															$.each(value, function(k,v){
+																annotations[v]= {};
+																annotationNames.push(v);
+																
+															    var element = document.createElement("input");
+																element.setAttribute("type", "radio");
+															    element.setAttribute("value", i++);
+															    element.setAttribute("name", "fruits");			
+																var lb = document.createElement("br");
+																foo.appendChild(element);
+																foo.innerHTML += v;
+																foo.appendChild(lb);
+															    
+															});
+													});	
+													//console.log(annotations);	
+									          }
+									   });
+									   	
 									   	drawchart();
 									   	//alert("here");
 									   	
 									   	$('#temp').click(function(){
 									 	for (var j = 0; j < from.length;j++){
-										  	plot(from[j],to[j],labelname[j]);
+									 		var parts = labelname[j].split("_");
+									 		var subparts = parts[1].split(".");
+									 		var index = annotationNames.indexOf(subparts[0]);
+									 		plot(from[j],to[j],index);
 										  	console.log(labelname[j]+":"+from[j]+":"+to[j]);
 										   	}
+										from.length=0;
+										to.length=0;
+										labelname.length=0;
 										});			                
 						            }
 						      });
@@ -634,14 +649,21 @@
   					  		var annotated = {};
   					  		annotated.start = start;
   					  		annotated.end = end;
-  					  		annotated.streamname = "meter data";
-  					  		annotated.names = {"deviceA":1,"deviceB":1,"deviceC":1,"deviceD":1}
+  					  		annotated.dataSeriesName = dataSeries;
+  					  		annotated.names = {};
+  					  		for (var i=0; i<annotationNames.length; i++){
+  					  			annotated.names[annotationNames[i]]=1;
+  					  			annotated[annotationNames[i]] = annotations[annotationNames[i]]
+  					  		}
+  					  		
+  					  		/*annotated.names = {"deviceA":1,"deviceB":1,"deviceC":1,"deviceD":1}
   					  		annotated.deviceA = deviceMapA;
   					  		annotated.deviceB = deviceMapB;
   					  	    annotated.deviceC = deviceMapC;
   					  	    annotated.deviceD = deviceMapD;
-  					  	    
+  					  	    */
   					  	    var annotatedJson= JSON.stringify(annotated);
+  					  	    console.log(annotatedJson);
   							jQuery.ajax({type: "POST",
 						            url: "/save",
 						            data: annotatedJson,
@@ -655,7 +677,7 @@
 		});
 		
 		
-		
+		});
 		
 		
 		

@@ -10,8 +10,15 @@ POST    /post                       controllers.Application.post()
 
 POST 	/save						controllers.Application.save()
 
-GET 	/show						controllers.Application.show()
+POST 	/show						controllers.Application.show()
 
 POST  	/delete						controllers.Application.delete()
+
+#To get the names of possible annotations for the data series
+POST	/annotations					controllers.Application.annotations()
+
+#To get names of the available data series
+GET     /data						controllers.Application.data()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

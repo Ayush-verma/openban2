@@ -5,6 +5,7 @@ import play.mvc.*;
 import views.html.*;
 import play.api.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,21 +27,133 @@ public class Application extends Controller {
         return ok(index.render("OpenBan"));
     }
     
+    
+    
+    /*
+     * To send names of the available data series
+     */
+    public static Result data() {
+    	
+    	String DirPath = "data/";
+    	String files;
+    	File folder = new File(DirPath);
+    	File[] listOfFiles = folder.listFiles();
+    	JSONObject mainObj = new JSONObject();
+    	 JSONArray ja = new JSONArray();
+    	
+    	for (int i = 0; i < listOfFiles.length; i++) 
+    	{
+	    	if (listOfFiles[i].isFile()) {
+		    	   files = listOfFiles[i].getName();
+		    	   if(!files.contains("_"))
+		    	   {
+		    		   //FilenameUtils.removeExtension(files)
+		    		   ja.put(files);		    	   }
+	    	}
+	    	
+    	}
+    	try {
+			mainObj.put("names", ja);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	return ok(mainObj.toString());
+    	
+    }
+    
+    
+    /*
+     * To send the names of possible annotations for the data series
+     */
+    public static Result annotations() {
+    	
+    	String DirPath = "data/";
+    	String files;
+    	File folder = new File(DirPath);
+    	File[] listOfFiles = folder.listFiles();
+    	JSONObject mainObj = new JSONObject();
+    	JSONArray ja = new JSONArray();
+    	
+    	BufferedReader br = null;
+		String line = "";
+    	
+    	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+        String DataSeries = parameters.get("dataSeries")[0];
+        
+    	for (int i = 0; i < listOfFiles.length; i++) 
+    	{
+	    	if (listOfFiles[i].isFile()) {
+		    	   files = listOfFiles[i].getName();
+		    	   if(files.contains("_"))
+		    	   {
+		    		   String[] parts = files.split("_");
+		    		   String part1 = parts[0]+".csv";
+		    		   if (parts.length == 2 && part1.equals(DataSeries) && parts[1].equals("annotation.txt")){
+		    			   
+		    			   try {	
+		   		   			
+				   		   	  		br = new BufferedReader(new FileReader("data/"+files));
+				   		   			while ((line = br.readLine()) != null) {
+				   			   	 		ja.put(line);
+				   			   	 	}
+				   		   			
+				   		   			
+				   		   		} catch (FileNotFoundException e) {
+				   		   			e.printStackTrace();
+				   		   		} catch (IOException e) {
+				   		   			e.printStackTrace();
+				   		   		} finally {
+				   				   			if (br != null) {
+				   				   				try {
+				   				   					br.close();
+				   				   				} catch (IOException e) {
+				   				   					e.printStackTrace();
+				   				   				}
+				   				   			}
+				   				   		}
+		    			   
+		    		   }
+		       	   }
+	    	}
+	    	
+    	}
+    	try {
+    		mainObj.put("annotationNames", ja);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	return ok(mainObj.toString());
+    	
+    }
+    
+    
+    
     public static Result save() {
     	JsonNode annotatedNode = request().body().asJson();
     	String start = annotatedNode.get("start").toString();
     	String end = annotatedNode.get("end").toString();
+ 
+    	String dataSeries = annotatedNode.get("dataSeriesName").toString();
+    	String dataSeriesName = dataSeries.substring(1, dataSeries.length()-1);
+    	String[] parts = dataSeriesName.split("\\.");
     	
     	JsonNode namesNode=annotatedNode.findValue("names");
         Iterator<String> names= namesNode.fieldNames();
-    	while(names.hasNext()){
+    	
+        while(names.hasNext()){
         	String currentName = names.next();
         	JsonNode currentNameNode = annotatedNode.get(currentName);
+        	
         	Iterator<String> timeStamp = currentNameNode.fieldNames();
         	Iterator<JsonNode> aa= currentNameNode.elements();
+        	
         	if(aa.hasNext()){
         		aa.next();
-        		String outputFile = "annotations/"+currentName+".csv";
+        		String outputFile = "data/"+parts[0]+"_"+currentName+".csv";
         		
         		try {
         			// use FileWriter constructor that specifies open for appending
@@ -65,7 +178,13 @@ public class Application extends Controller {
     }
     
     public static Result show() throws JsonProcessingException, JSONException { 
-    	String DirPath = "annotations/";
+    	
+    	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+        String DataSeries = parameters.get("dataSeries")[0];
+        
+    	String[] parts = DataSeries.split("\\.");
+        
+    	String DirPath = "data/";
     	String files;
     	File folder = new File(DirPath);
     	File[] listOfFiles = folder.listFiles(); 
@@ -76,39 +195,50 @@ public class Application extends Controller {
     	 
     	   if (listOfFiles[i].isFile()) {
 		    	   files = listOfFiles[i].getName();
-		    	   System.out.println(files);
-		    	   JSONObject jo = new JSONObject();
-		    	   JSONArray ja = new JSONArray();
-		    	   String csvFile = "C:\\Users\\hp\\Desktop\\play-2.2.3\\openban2\\annotations\\"+files;
-		    	   //System.out.println(csvFile);
-		   		   BufferedReader br = null;
-		   		   String line = "";
-		   		   String cvsSplitBy = ",";
-		   			try {	
+		    	   
+		    	   
+		    	   if (files.contains("_") ){
+		    		   
+				    	String[] sub = files.split("_");
+				    	
+				    	if (sub[0].equals(parts[0]) &&  !(sub[1].equals("annotation.txt"))){
+				    	
+				    		System.out.println("as;;; "+files);
+				    	   JSONObject jo = new JSONObject();
+				    	   JSONArray ja = new JSONArray();
+				    	   String csvFile = "data/"+files;
+				    	   //System.out.println(csvFile);
+				   		   BufferedReader br = null;
+				   		   String line = "";
+				   		   String cvsSplitBy = ",";
+				   			try {	
+				   			
+				   	  		br = new BufferedReader(new FileReader(csvFile));
+				   			while ((line = br.readLine()) != null) {
+					   	 		String[] value = line.split(cvsSplitBy);
+					   	 		//System.out.println(value[0]);
+					   	 		//int foo = Integer.parseInt(value[0]);
+					   	 		jo.put(value[0], value[1]);
+					   	 	}
+				   			
+				   			ja.put(jo);
+				   			mainObj.put(files, jo);
+					   		} catch (FileNotFoundException e) {
+					   			e.printStackTrace();
+					   		} catch (IOException e) {
+					   			e.printStackTrace();
+					   		} finally {
+							   			if (br != null) {
+							   				try {
+							   					br.close();
+							   				} catch (IOException e) {
+							   					e.printStackTrace();
+							    			}
+							   		}
+							   }
+		    	     }
 		   			
-		   	  		br = new BufferedReader(new FileReader(csvFile));
-		   			while ((line = br.readLine()) != null) {
-			   	 		String[] value = line.split(cvsSplitBy);
-			   	 		//System.out.println(value[0]);
-			   	 		//int foo = Integer.parseInt(value[0]);
-			   	 		jo.put(value[0], value[1]);
-			   	 	}
-		   			
-		   			ja.put(jo);
-		   			mainObj.put(files, jo);
-		   		} catch (FileNotFoundException e) {
-		   			e.printStackTrace();
-		   		} catch (IOException e) {
-		   			e.printStackTrace();
-		   		} finally {
-				   			if (br != null) {
-				   				try {
-				   					br.close();
-				   				} catch (IOException e) {
-				   					e.printStackTrace();
-				   				}
-				   			}
-				   		}
+    	   		}
 	    	   
 	    	 }
     	  }
@@ -123,8 +253,13 @@ public class Application extends Controller {
     	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
         String StartDate = parameters.get("Start")[0];
         String StopDate = parameters.get("Stop")[0];
-        String FileName = parameters.get("Name")[0];
-	    
+        
+        String Name = parameters.get("Name")[0];
+        String DataSeries = parameters.get("dataSeries")[0];
+    	String[] parts = DataSeries.split("\\.");
+        
+        String FileName = parts[0]+"_"+Name+".csv";
+        
         boolean Started = false;
         BufferedReader br = null;
 		String line = "";
@@ -132,8 +267,8 @@ public class Application extends Controller {
 	    
 	    try {
 	    	
-	    	CsvWriter csvOutput = new CsvWriter(new FileWriter("annotations/"+"temp.csv", false), ',');
-   	  		br = new BufferedReader(new FileReader("annotations/"+FileName));
+	    	CsvWriter csvOutput = new CsvWriter(new FileWriter("data/"+"temp.csv", false), ',');
+   	  		br = new BufferedReader(new FileReader("data/"+FileName));
    	  		while ((line = br.readLine()) != null) {
 	   	 		String[] value = line.split(cvsSplitBy);
 	   	 		if (value[0].equals(StartDate)){
@@ -170,29 +305,33 @@ public class Application extends Controller {
 		   		}
 	    
 	    
-	    File Filedelete = new File("annotations/"+FileName);
+	    File Filedelete = new File("data/"+FileName);
 	    boolean delete = Filedelete.delete();
 	    System.out.println(delete);
-	    File oldFileName = new File("annotations/"+"temp.csv"); 
-	    File newFileName = new File("annotations/"+FileName);
+	    File oldFileName = new File("data/"+"temp.csv"); 
+	    File newFileName = new File("data/"+FileName);
 	    boolean rename= oldFileName.renameTo(newFileName);
 	    System.out.println(rename);
-	    File file = new File("annotations/"+FileName);
+	    File file = new File("data/"+FileName);
 			if (file.length() == 0) {
 			    file.delete();
-			    System.out.println("here");
+			    //System.out.println("here");
 			} 
 		
 	    return ok("yo");
     }
     
-    
-
+    	
+    /*
+     * To Send the main series data to be rendered in the HighChart 
+     */
     public static Result post() throws ClassNotFoundException, NoSuchFieldException, SecurityException {
     	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
         String StartDate = parameters.get("Start")[0];
         String EndDate = parameters.get("End")[0];
-        String csvFile = "C:\\Users\\hp\\Desktop\\data_meter.csv\\data_meter.csv";
+        String DataSeries = parameters.get("dataSeries")[0];
+        
+        String csvFile = "data/"+DataSeries;
 		BufferedReader br = null;
 		String line = "";
 		boolean Started=false;
@@ -219,6 +358,7 @@ public class Application extends Controller {
 	                      	}
 			}
 		} catch (FileNotFoundException e) {
+			System.out.println("sdfsdf"+DataSeries);
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -236,13 +376,7 @@ public class Application extends Controller {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			json = mapper.writeValueAsString(maps);
-		} /*catch (JsonGenerationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} */ catch (IOException e) {
+		}  catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
