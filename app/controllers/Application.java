@@ -28,6 +28,136 @@ public class Application extends Controller {
     }
     
     
+    /*
+     * To save a new possible annotation name for given data series
+     */
+    public static Result saveAnnotations() {
+  
+    	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+        String DataSeries = parameters.get("dataSeries")[0];
+        String AnnotationName = parameters.get("annotationName")[0];
+    	String[] parts = DataSeries.split("\\.");
+        
+    	String DirPath = "data/";
+    	String files;
+    	File folder = new File(DirPath);
+    	File[] listOfFiles = folder.listFiles(); 
+    	Boolean found = false;
+    	for (int i = 0; i < listOfFiles.length; i++) 
+    	{
+    		 if (listOfFiles[i].isFile()) {
+		    	   files = listOfFiles[i].getName();
+		    	   if (files.contains("_") ){
+		    		    String[] sub = files.split("_");
+				    	if (sub[0].equals(parts[0]) &&  sub[1].equals("annotation.txt")){
+				    		found = true;
+				    		String FileName = "data/"+files;
+				    	    try{
+				    	    	
+					       		FileWriter fileWritter = new FileWriter(FileName,true);
+					       	    BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+					       	    bufferWritter.write(AnnotationName);
+					       	    bufferWritter.newLine();
+					       	    bufferWritter.close();
+					    
+				    	    }catch(IOException e){
+					       		return internalServerError("Server Error : IOException"+e.getMessage());					       	}
+				   		}
+		   			
+    	   		   }
+	    	   
+	    	 }
+       }
+       if (!found){
+    	   File afile = new File(parts[0]+"_annotation.txt");
+		try {
+			 	FileWriter fw = new FileWriter(afile);
+			 	BufferedWriter bw = new BufferedWriter(fw);
+			 	bw.write(AnnotationName);
+	       	    bw.newLine();
+	       	    bw.close();
+		
+			} catch (IOException e) {
+				return internalServerError("Server Error : IOException"+e.getMessage());
+			}
+      	  
+      	   
+       }
+      return ok();
+    }
+    
+    /*
+     * To delete a given annotation name for given data series
+     */
+    public static Result deleteAnnotations() {
+    	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+        String Name = parameters.get("annotationName")[0];
+        String DataSeries = parameters.get("dataSeries")[0];
+    	String[] parts = DataSeries.split("\\.");
+        
+        String FileName = parts[0]+"_annotation.txt";
+        BufferedReader br = null;
+		String line = "";
+	    
+	    try {
+	    	
+	    	FileWriter fileWritter = new FileWriter("data/"+"tempNames.txt",false);
+       	    BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+   	  		br = new BufferedReader(new FileReader("data/"+FileName));
+   	  		while ((line = br.readLine()) != null) {
+	   	 		if (!line.equals(Name)){
+		   	 		bufferWritter.write(line);
+		       	    bufferWritter.newLine();
+	   	 		}
+	   	 		
+	   	 	}
+   	  		bufferWritter.close();
+		} catch (FileNotFoundException e) {
+   			return internalServerError("Server Error : FileNotFoundException "+e.getMessage()); 
+   		} catch (IOException e) {
+   			return internalServerError("Server Error : IOException "+e.getMessage()); 
+   		} finally {
+		   			if (br != null) {
+		   				try {
+		   					br.close();
+		   				} catch (IOException e) {
+		   					return internalServerError("Server Error : IOException "+e.getMessage()); 
+		   				}
+		   			}
+		   		}
+	    
+	    
+	    File Filedelete = new File("data/"+FileName);
+	    boolean delete = Filedelete.delete();
+	    //System.out.println(delete);
+	    File oldFileName = new File("data/"+"tempNames.txt"); 
+	    File newFileName = new File("data/"+FileName);
+	    boolean rename= oldFileName.renameTo(newFileName);
+	    //System.out.println(rename);
+	    /*File file = new File("data/"+FileName);
+			if (file.length() == 0) {
+			    file.delete();
+			    //System.out.println("here");
+			} */
+		
+	    // Also delete the Annotation.csv file for that annotation
+	    String DirPath = "data/";
+    	String files;
+    	File folder = new File(DirPath);
+    	File[] listOfFiles = folder.listFiles();
+    	for (int i = 0; i < listOfFiles.length; i++) {
+    		if (listOfFiles[i].isFile()) {
+		    	   files = listOfFiles[i].getName();
+		    	   if (files.equals(parts[0]+"_"+Name+".csv")){
+		    		   File afile = new File("data/"+files);
+		    		   afile.delete();
+		    	   }
+    		}
+    		
+    	}
+	    return ok();
+    }
+    
     
     /*
      * To send names of the available data series
@@ -55,8 +185,8 @@ public class Application extends Controller {
     	try {
 			mainObj.put("names", ja);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			return internalServerError("Server Error : JSONException"+e.getMessage());
 		}
     	
     	return ok(mainObj.toString());
@@ -101,15 +231,16 @@ public class Application extends Controller {
 				   		   			
 				   		   			
 				   		   		} catch (FileNotFoundException e) {
-				   		   			e.printStackTrace();
+				   					return internalServerError("Server Error : FileNotFoundException"+e.getMessage());
+
 				   		   		} catch (IOException e) {
-				   		   			e.printStackTrace();
+				   		   			return internalServerError("Server Error : IOException"+e.getMessage()); 
 				   		   		} finally {
 				   				   			if (br != null) {
 				   				   				try {
 				   				   					br.close();
 				   				   				} catch (IOException e) {
-				   				   					e.printStackTrace();
+				   				   				return internalServerError("Server Error : IOException"+e.getMessage()); 
 				   				   				}
 				   				   			}
 				   				   		}
@@ -122,8 +253,7 @@ public class Application extends Controller {
     	try {
     		mainObj.put("annotationNames", ja);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return internalServerError("Server Error : JSONException"+e.getMessage()); 
 		}
     	
     	return ok(mainObj.toString());
@@ -131,7 +261,10 @@ public class Application extends Controller {
     }
     
     
-    
+    /*
+     *---Saving Annotation---
+     * To save data of the given annotation name for the data series
+     */
     public static Result save() {
     	JsonNode annotatedNode = request().body().asJson();
     	String start = annotatedNode.get("start").toString();
@@ -166,7 +299,7 @@ public class Application extends Controller {
         			}
         			csvOutput.close();
         		} catch (IOException e) {
-        			e.printStackTrace();
+        			return internalServerError("Server Error : IOException"+e.getMessage()); 
         		}
         		
         
@@ -174,9 +307,13 @@ public class Application extends Controller {
         	
     	}
     	
-    	return ok("aa");
+    	return ok("");
     }
     
+    /*
+     *---Showing Annotation---
+     * To show all the saved annotations for the data series
+     */
     public static Result show() throws JsonProcessingException, JSONException { 
     	
     	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
@@ -224,15 +361,15 @@ public class Application extends Controller {
 				   			ja.put(jo);
 				   			mainObj.put(files, jo);
 					   		} catch (FileNotFoundException e) {
-					   			e.printStackTrace();
+					   			return internalServerError("Server Error : FileNotFoundException"+e.getMessage()); 
 					   		} catch (IOException e) {
-					   			e.printStackTrace();
+					   			return internalServerError("Server Error : IOException"+e.getMessage()); 
 					   		} finally {
 							   			if (br != null) {
 							   				try {
 							   					br.close();
 							   				} catch (IOException e) {
-							   					e.printStackTrace();
+							   					return internalServerError("Server Error : IOException"+e.getMessage()); 
 							    			}
 							   		}
 							   }
@@ -247,7 +384,10 @@ public class Application extends Controller {
     }
     
     
-    
+    /*
+     *---Deleting Annotation---
+     * To delete a particular data range of a given annotation (given data series)
+     */
     public static Result delete() {
     	
     	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
@@ -291,15 +431,15 @@ public class Application extends Controller {
 				
    			
    		} catch (FileNotFoundException e) {
-   			e.printStackTrace();
+   			return internalServerError("Server Error : FileNotFoundException"+e.getMessage()); 
    		} catch (IOException e) {
-   			e.printStackTrace();
+   			return internalServerError("Server Error : IOException"+e.getMessage()); 
    		} finally {
 		   			if (br != null) {
 		   				try {
 		   					br.close();
 		   				} catch (IOException e) {
-		   					e.printStackTrace();
+		   					return internalServerError("Server Error : IOException"+e.getMessage()); 
 		   				}
 		   			}
 		   		}
@@ -318,13 +458,12 @@ public class Application extends Controller {
 			    //System.out.println("here");
 			} 
 		
-	    return ok("yo");
+	    return ok();
     }
-    
-    	
-    /*
+    public static Map<String, String> maps = new HashMap<String, String>();
+    /*--------------
      * To Send the main series data to be rendered in the HighChart 
-     */
+     ----------------*/
     public static Result post() throws ClassNotFoundException, NoSuchFieldException, SecurityException {
     	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
         String StartDate = parameters.get("Start")[0];
@@ -359,15 +498,18 @@ public class Application extends Controller {
 			}
 		} catch (FileNotFoundException e) {
 			System.out.println("sdfsdf"+DataSeries);
-			e.printStackTrace();
+   			return internalServerError("Server Error : FileNotFoundException"+e.getMessage()); 
+
 		} catch (IOException e) {
-			e.printStackTrace();
+   			return internalServerError("Server Error : IOException"+e.getMessage()); 
+
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+		   			return internalServerError("Server Error : IOException"+e.getMessage()); 
+
 				}
 			}
 		}
@@ -378,7 +520,8 @@ public class Application extends Controller {
 			json = mapper.writeValueAsString(maps);
 		}  catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+   			return internalServerError("Server Error : IOException"+e.getMessage()); 
+
 		}
      
         return ok(json);

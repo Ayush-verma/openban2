@@ -15,10 +15,16 @@ POST 	/show						controllers.Application.show()
 POST  	/delete						controllers.Application.delete()
 
 #To get the names of possible annotations for the data series
-POST	/annotations					controllers.Application.annotations()
+POST	/annotations				controllers.Application.annotations()
 
 #To get names of the available data series
 GET     /data						controllers.Application.data()
+
+#To save a new possible annotation name for given data series
+POST     /saveAnnotations			controllers.Application.saveAnnotations()
+
+#To delete a given annotation name for given data series
+POST     /deleteAnnotations			controllers.Application.deleteAnnotations()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

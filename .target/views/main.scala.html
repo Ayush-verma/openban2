@@ -55,63 +55,89 @@
     
     
     <form action="/post" id="searchForm">
-    <h2>Select Data Series <select id="data_names">
-		</select>
-	</h2>
+    <h2>Select Data Series <select id="data_names"></select> </h2>
   	<h2>Enter Start Date      <input type="text" id="datepicker1" name="start" placeholder="Click To Select"></h2>
   	<h2>Enter End Date        <input type="text" id="datepicker2" name="end" placeholder="Click To Select"></h2>
   	<input type="submit" value="SUBMIT">
 	</form>
-	<hr>
-	<!-- The HighChart after the Ajax request will be rendered inside this div -->
 	
-	<div id="dialogUI" title="fruits"></div>
+	<hr>
+	<h3> <button type="button" id="saveAnnotations">Save Annotations Names</button>  </h3>
+	<input type="text" id="addAnnotation" placeholder="Enter Desired Name">
+	<select id="data_names2"></select>
+	<button type="button" id="EnterSave">Enter To Save</button> 
+	
+	<h3><button type="button" id="deleteAnnotations">Delete Annotations Names</button> </h3>
+	<select id="data_names3"></select>
+	<select id="possibleAnnotation"></select>
+	<button type="button" id="EnterDelete">Enter To Delete</button> 
+	<hr>
+	
+	<div id="outerdialogUI" title="fruits">
+	
+	<h3>Start Date   <input type="text" id="UIdatepicker1" name="UIstart" placeholder="Click To Select"></h3>
+	<h3>End Date     <input type="text" id="UIdatepicker2" name="UIend" placeholder="Click To Select"></h3>
+	<h4>Possible Annotations</h4>
+	<div id="dialogUI" title="fruits">	</div>
+	</div>
     
     <div id="container" style="height: 450px; min-width: 600px"> <img id="image" height="450 width="1000" src="@routes.Assets.at("images/Untitled.png")"/></div>
+    
     <button type="button" id="save">Save Annotations</button>
     <button type="button" id="show">Show Saved Annotations</button>
     <button type="button" id="temp">Show </button>
+    
     <div id="container2" style="height: 450px; min-width: 600px"></div>
     
 	<script>
 		$(document).ready(function(){
 		
-		
 		var start;
 		var end;
 		
+		var startValue;
+		var endValue;		
 		var theOptions = [];	
 		var dataSeries;
 		var annotationNames = [];
-		
 		var annotations = {};
 		
-		var deviceMapA = {};
-    	var deviceMapB = {};
-    	var deviceMapC = {};
-    	var deviceMapD = {};
-    	
     	var selectStart;
 		var selectEnd;
 		var chart;
+			
+		$( this ).find('#outerdialogUI').hide();
 		
-					
-            $( this ).find('#dialogUI').hide();
 			
-			jQuery.ajax({type: "GET",
-			      async: false,
-			      url: "/data",
-			      success: function(data){
-						var myData = $.parseJSON(data);
-						$.each(myData, function( key, value ) {
-								$.each(value, function(k,v){
-									theOptions.push(v);
-									});
-							});		
-			          }
-			});
-			
-			var num,theSelect,anOption;
+		$( this ).find('#addAnnotation').hide();
+		$( this ).find('#data_names2').hide();
+		$( this ).find('#EnterSave').hide();
+		
+		
+		$( this ).find('#data_names3').hide();
+		$( this ).find('#possibleAnnotation').hide();
+		$( this ).find('#EnterDelete').hide();
+		
+		//-------To get Names of all available data series-------- 
+		jQuery.ajax({type: "GET",
+		      async: false,
+		      url: "/data",
+		      success: function(data){
+					var myData = $.parseJSON(data);
+					$.each(myData, function( key, value ) {
+							$.each(value, function(k,v){
+								theOptions.push(v);
+								});
+						});		
+		          }
+		 })
+		.fail(function(error) {
+				  alert("Ajax Request Failed\nError Status Code : "+ 
+				  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");		  
+  		 }); 
+  			
+  					 
+			var num,theSelect,theSelect2,theSelect3,anOption;
 			theSelect = document.getElementById('data_names');
 			for (i = 0; i < theOptions.length; i++) {
 				
@@ -120,30 +146,216 @@
 			    anOption.innerHTML = theOptions[i];
 			    theSelect.appendChild(anOption);
 			}
+			
+			
 			dataSeries=theSelect.value;
 			theSelect.onchange = function (){
 					dataSeries=theSelect.value;
-					console.log(dataSeries);
-					
 			}
 			
+			//----Adding Annotations Names--------
+			$('#saveAnnotations').click(function() {
+			
+				var theSelect2 = document.getElementById('data_names2');
+				theSelect2.innerHTML = "";
+				
+				for (i = 0; i < theOptions.length; i++) {
+					anOption = document.createElement('option');
+				    anOption.value = theOptions[i];;
+				    anOption.innerHTML = theOptions[i];
+				    theSelect2.appendChild(anOption);
+			    }
+				
+				$( document ).find('#addAnnotation').show();
+			    $( document).find('#data_names2').show();
+				$( document).find('#EnterSave').show();
+				
+				
+			});
+			$('#EnterSave').click(function() {
+				var DataSeries = document.getElementById('data_names2').value;
+				var annotationName = document.getElementById('addAnnotation').value;
+				jQuery.ajax({type: "POST",
+			      	  async: false,
+				      data: {'dataSeries' : DataSeries, 'annotationName' : annotationName },
+				      url: "/saveAnnotations",
+				      success: function(data){
+				      		alert("Addition Successful");
+				      		$( document ).find('#addAnnotation').hide();
+					 	    $( document).find('#data_names2').hide();
+							$( document).find('#EnterSave').hide();
+			          }
+			  	})
+	  			.fail(function(error) {
+						  alert("Ajax Request Failed\nError Status Code : "+ 
+						  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+						  
+	  			}); 
+			}); 
+			
+			
+			
+			//-------Delting Annotations Names------ 
+				
+			$('#deleteAnnotations').click(function() {
+				var theSelect3 = document.getElementById('data_names3');
+				theSelect3.innerHTML = "";
+				for (i = 0; i < theOptions.length; i++) {
+					anOption = document.createElement('option');
+				    anOption.value = theOptions[i];
+				    anOption.innerHTML = theOptions[i];
+				    theSelect3.appendChild(anOption);
+			    }
+				var DataSeries=theSelect3.value;
+				jQuery.ajax({type: "POST",
+				      async: false,
+				      data: {'dataSeries' : DataSeries },
+				      url: "/annotations",
+				      success: function(data){
+				      		var options = document.getElementById('possibleAnnotation');
+							options.innerHTML = "";
+							var myData = $.parseJSON(data);
+							$.each(myData, function( key, value ) {
+									if(value.length==0){
+										alert("No Annotations Names Exist for this data series!");
+									}
+									$.each(value, function(k,v){
+									    var element = document.createElement('option');
+										element.value = v;
+									    element.innerHTML = v;
+									    options.appendChild(element);
+									    			
+									    
+									});
+							});	
+							//console.log(annotations);	
+			          }
+				})
+		  		.fail(function(error) {
+							  alert("Ajax Request Failed\nError Status Code : "+ 
+							  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+							  
+		  		}); 
+								
+				theSelect3.onchange = function (){
+						DataSeries=theSelect3.value;
+						jQuery.ajax({type: "POST",
+						      async: false,
+						      data: {'dataSeries' : DataSeries },
+						      url: "/annotations",
+						      success: function(data){
+						      		var options = document.getElementById('possibleAnnotation');
+									options.innerHTML = "";
+									var myData = $.parseJSON(data);
+									$.each(myData, function( key, value ) {
+											if(value.length==0){
+												alert("No Annotations Names Exist for this data series!");
+											}
+											$.each(value, function(k,v){
+											    var element = document.createElement('option');
+												element.value = v;
+											    element.innerHTML = v;
+											    options.appendChild(element);
+											    			
+											    
+											});
+									});	
+									//console.log(annotations);	
+					          }
+						})
+				  		.fail(function(error) {
+									  alert("Ajax Request Failed\nError Status Code : "+ 
+									  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+									  
+				  		});
+				}
+				
+				$( document ).find('#possibleAnnotation').show();
+			    $( document).find('#data_names3').show();
+				$( document).find('#EnterDelete').show();
+				
+			});	
+				
+			$('#EnterDelete').click(function() {
+				var DataSeries = document.getElementById('data_names3').value;
+				var annotationName = document.getElementById('possibleAnnotation').value;
+				jQuery.ajax({type: "POST",
+			      	  async: false,
+				      data: {'dataSeries' : DataSeries, 'annotationName' : annotationName },
+				      url: "/deleteAnnotations",
+				      success: function(data){
+				      		alert("Deletion Successful");
+				      		$( document ).find('#possibleAnnotation').hide();
+					 	    $( document).find('#data_names3').hide();
+							$( document).find('#EnterDelete').hide();
+				      		
+			          }
+			  	})
+	  			.fail(function(error) {
+						  alert("Ajax Request Failed\nError Status Code : "+ 
+						  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+						  
+	  			}); 
+			}); 
+					
 			
 			
 			jQuery('#datepicker1').datetimepicker({
-			startDate:'-1970/06/29',
-			minDate:'2014/01/01',
-  			maxDate:'2014/01/10',
-			format:'unixtime'
+			startDate: '-1970/07/07',
+			minDate:'2014/01/06',
+  			maxDate:'2014/01/18',
+			
 			});
   		
 			jQuery('#datepicker2').datetimepicker({
-  			startDate:'-1970/06/29',
-  			minDate:'2014/01/01',
-  			maxDate:'2014/01/10',
-  			format:'unixtime'
+			startDate: '-1970/07/07',
+  			minDate:'2014/01/06',
+  			maxDate:'2014/01/18',
+  			  			
 			});
+			
+			jQuery('#UIdatepicker1').datetimepicker();
+			
+			jQuery('#UIdatepicker2').datetimepicker();
 		
 
+
+		
+		function colorGenerator(){
+			
+			function rand(min, max) {
+			    return min + Math.random() * (max - min);
+			}
+			var h = Math.random();
+		    var s = rand(0.85, 0.95);
+		    var l = rand(0.85, 0.90);
+		    var r,g,b;
+		    if(s == 0){
+		    	r = g = b = l; // achromatic
+			}
+			else{
+			     function hue2rgb(p, q, t){
+			     if(t < 0) t += 1;
+			     if(t > 1) t -= 1;
+			     if(t < 1/6) return p + (q - p) * 6 * t;
+			     if(t < 1/2) return q;
+			     if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+			     return p;
+		     }
+			
+			     var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+			     var p = 2 * l - q;
+			     r = hue2rgb(p, q, h + 1/3);
+			     g = hue2rgb(p, q, h);
+			     b = hue2rgb(p, q, h - 1/3);
+			    }
+			var R,G,B;
+    		R = Math.round(r * 255);
+    		G = Math.round(g * 255);
+    		B = Math.round(b * 255);
+    		var hex = "#" + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
+			return hex;
+		}
 		
 		
 		
@@ -151,197 +363,204 @@
 		
 		function drawchart(){
 
-    	var startValue=Number(start);
-    	var endValue=Number(end);
-    	if (startValue>endValue){
+    	var startValue1=Number(start);
+    	var endValue1=Number(end);
+    	if ( isNaN(start) || isNaN(end)  || startValue1>endValue1){	
 	    	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
 	    	location.reload();
     	}
-    	
-    	var posting = $.post( "/post", { 'Start' : start , 'End' : end , 'dataSeries' : dataSeries }, function(data){
-    					
-    					Highcharts.setOptions({
-							global: {
-								useUTC: false
-							}
-						});
-    					var sensorchartOptions = {
-    					chart: {
-				            renderTo: 'container',
-				            type: 'line',
-				            zoomType: 'x',
-					        events: {
-					        	
-					        	selection: function(event) {
-					        		event.preventDefault();
-					        		
-					                if (event.xAxis) {
-					                	var len,value;
-					                	var select_S = new Date(event.xAxis[0].min);
-					                	var select_E = new Date(event.xAxis[0].max);
-					                	selectStart = (select_S.getTime()-select_S.getMilliseconds())/1000;
-					                	selectEnd   = (select_E.getTime()-select_E.getMilliseconds())/1000;
-					                    $("#dialogUI").dialog({
-										        resizable: false,
-										        modal: true,
-										        title: "Confirm Selection",
-										        height: 350,
-										        width: 600,
-										        buttons: {
-										            "Yes": function () {
-										                len = document.getElementsByName("fruits").length;
-										                for (var i = 0 ; i < len ; i++){
-										                	if (document.getElementsByName("fruits")[i].checked){
-										                		value = document.getElementsByName("fruits")[i].value;
-										                		alert(value);
-										                		break;
-										                	}	
-										                }
-										                
-										            },
-										                "No": function () {
-										                $(this).dialog('close');
-										                
-										            }
-										       },
-										       close: function () {
-														  if (value != null) {
-														    	var j=0;
-														    	var found = false;
-														    	while(j<annotationNames.length){
-														      		if(value == j){
-														        		alert("Device Usage Saved");
-														        		for (var i=selectStart; i <= selectEnd; i++){
-														        			deviceMapA[i] = 1;
-														        			annotations[annotationNames[j]][i]=1
-														        			
-														        		}
-														        		
-														        		
-														        		
-														        		found = true;
-														        	    plot(selectStart,selectEnd,j);
-														        	    
-														        	}
-														        	console.log("as");
-														        	console.log(annotations[annotationNames[j]]);
-														        	j++;
-														        	
-														        }//while
-														        if (!found){
-														        	alert("Invalid Input !!! \nPlease Try Again");
-														        }
-														        
-														  }//if
-														  
-										        }//close function
-										 });//dialog close
-										 
-					                } //if close
-					        	}//selection close
-					      	 
-				    		},//events close
-				        },//chart
-				        title: {
-				            text: 'SENSOR DATA'
-				        },
-				       	rangeSelector: {
-        						buttons: [{
-											type: 'minute',
-											count: 1,
-											text: 'min'
-										}, {
-											type: 'hour',
-											count: 1,
-											text: 'hr'
-										}, {
-											type: 'day',
-											text: 'day'
-										}, {
-											type: 'all',
-											text: 'All'
-										}],
-								buttonTheme: { // styles for the buttons
-								    		fill: 'none',
-								    		stroke: 'none',
-								    		'stroke-width': 0,
-								    		r: 8,
-								    		style: {
-								    			color: '#039',
-								    			fontWeight: 'bold'
-								    		},
-								    		states: {
-								    			hover: {
-								    			},
-								    			select: {
-								    				fill: '#039',
-								    				style: {
-								    					color: 'white'
-								    				}
-								    			}
-								    		}
-								    	},
-								 inputEnabled: false
-						    	
-					    },
-					    scrollbar: {
-							barBackgroundColor: 'gray',
-							barBorderRadius: 7,
-							barBorderWidth: 0,
-							buttonBackgroundColor: 'gray',
-							buttonBorderWidth: 0,
-							buttonArrowColor: 'yellow',
-							buttonBorderRadius: 7,
-							rifleColor: 'yellow',
-							trackBackgroundColor: 'white',
-							trackBorderWidth: 1,
-							trackBorderColor: 'silver',
-							trackBorderRadius: 7
-					    },
-       					navigator: {
-					    	handles: {
-					    		backgroundColor: 'yellow',
-					    		borderColor: 'red'
-					    	}
-					    },
-        				xAxis: {
-        					type: 'datetime'
-        				},
-        				yAxis: {
-        					allowDecimals :true
-        				},
-				        series: [{
-				        			data:[]
-				        			
-				        		}]
-				       };			
-				     
-				      chart = new Highcharts.StockChart(sensorchartOptions);
-    				  var points = $.parseJSON(data);
-    				  $.each(points, function( key, value ) {
-    				  			num=Number(key)*1000;
-    				  			var date = new Date(num).getTime();
-    				  			chart.series[0].addPoint([date,Number(value)], false);
-  			        			});
-  								
-  					  chart.redraw();
-  					  alert("Press Show");
-					 })
+    	else{
+    	var posting = $.ajax({type : 'POST',
+    						url: "/post",
+    						data : { 'Start' : start , 'End' : end , 'dataSeries' : dataSeries },
+    						success:  function(data){
+    								Highcharts.setOptions({
+										global: {
+											useUTC: false
+										}
+									});
+			    					var sensorchartOptions = {
+			    					chart: {
+							            renderTo: 'container',
+							            type: 'line',
+							            zoomType: 'x',
+								        events: {
+								        	
+								        	selection: function(event) {
+								        		event.preventDefault();
+								        		if (event.xAxis) {
+								                	var len,value;
+								                	var select_S = new Date(event.xAxis[0].min);
+								                	var select_E = new Date(event.xAxis[0].max);
+								                	
+								                	selectStart = (select_S.getTime()-select_S.getMilliseconds())/1000;
+								                	selectEnd   = (select_E.getTime()-select_E.getMilliseconds())/1000;
+								                    $("#outerdialogUI").dialog({
+													        resizable: false,
+													        modal: true,
+													        title: "Confirm Selection",
+													        height: 350,
+													        width: 600,
+													        buttons: {
+													            "Yes": function () {
+													                len = document.getElementsByName("fruits").length;
+													                for (var i = 0 ; i < len ; i++){
+													                	if (document.getElementsByName("fruits")[i].checked){
+													                		value = document.getElementsByName("fruits")[i].value;
+													                		
+													                		break;
+													                	}//if close	
+													                }//for close
+													      	         $(this).dialog('close');          
+													            },//yes close
+													                "No": function () {
+													                $(this).dialog('close');
+													                
+													            }//no close
+													       },//buttons close
+													       close: function () {
+																	  if (value != null) {
+																	  		
+																	    	var j=0;
+																	    	var found = false;
+																	    	while(j<annotationNames.length){
+																	      		if(value == j){
+																	        		alert("Device Usage Saved");
+																	        		for (var i=selectStart; i <= selectEnd; i++){
+																	        			
+																	        			annotations[annotationNames[j]][i]=1
+																	        			
+																	        		}
+																	        		
+																	        		
+																	        		
+																	        		found = true;
+																	        	    plot(selectStart,selectEnd,j);
+																	        	    
+																	        	}
+																	        	j++;
+																	        	
+																	        }//while
+																	        if (!found){
+																	        	alert("Invalid Input !!! \nPlease Try Again");
+																	        }
+																	        
+																	  }//if
+																	  
+													        }//close function
+													 });//dialog close
+													 
+								                } //if close
+								        	}//selection close
+								      	 
+							    		},//events close
+							        },//chart
+							        title: {
+							            text: 'SENSOR DATA'
+							        },
+							       	rangeSelector: {
+			        						buttons: [{
+														type: 'minute',
+														count: 1,
+														text: 'min'
+													}, {
+														type: 'hour',
+														count: 1,
+														text: 'hr'
+													}, {
+														type: 'day',
+														text: 'day'
+													}, {
+														type: 'all',
+														text: 'All'
+													}],
+											buttonTheme: { // styles for the buttons
+											    		fill: 'none',
+											    		stroke: 'none',
+											    		'stroke-width': 0,
+											    		r: 8,
+											    		style: {
+											    			color: '#039',
+											    			fontWeight: 'bold'
+											    		},
+											    		states: {
+											    			hover: {
+											    			},
+											    			select: {
+											    				fill: '#039',
+											    				style: {
+											    					color: 'white'
+											    				}
+											    			}
+											    		}
+											    	},
+											 inputEnabled: false
+									    	
+								    },
+								    scrollbar: {
+										barBackgroundColor: 'gray',
+										barBorderRadius: 7,
+										barBorderWidth: 0,
+										buttonBackgroundColor: 'gray',
+										buttonBorderWidth: 0,
+										buttonArrowColor: 'yellow',
+										buttonBorderRadius: 7,
+										rifleColor: 'yellow',
+										trackBackgroundColor: 'white',
+										trackBorderWidth: 1,
+										trackBorderColor: 'silver',
+										trackBorderRadius: 7
+								    },
+			       					navigator: {
+								    	handles: {
+								    		backgroundColor: 'yellow',
+								    		borderColor: 'red'
+								    	}
+								    },
+			        				xAxis: {
+			        					type: 'datetime'
+			        				},
+			        				yAxis: {
+			        					allowDecimals :true
+			        				},
+							        series: [{
+							        			data:[]
+							        			
+							        		}]
+							       };			
+							     
+							      chart = new Highcharts.StockChart(sensorchartOptions);
+			    				  var points = $.parseJSON(data);
+			    				  $.each(points, function( key, value ) {
+			    				  			num=Number(key)*1000;
+			    				  			var date = new Date(num).getTime();
+			    				  			chart.series[0].addPoint([date,Number(value)], false);
+			  			        			});
+			  								
+			  					  chart.redraw();
+			  					  //alert("Press Show");
+			  					  }
+					   	   
+					   })
 					  .fail(function(error) {
 					  alert("Ajax Request Failed\nError Status Code : "+ 
 					  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
 					  
   					 });					
-    				
-    		}		
+    		
+    		
+    		}//close else		
+    	}//close function		
 		
 		
 		$("#searchForm").submit(function(event){
  		event.preventDefault();
  	
  		var $form = $( this );
-  		start = $form.find( "input[name='start']" ).val();
-  		end = $form.find( "input[name='end']" ).val();
+  		startValue = $form.find( "input[name='start']" ).val();
+  		endValue = $form.find( "input[name='end']" ).val();
+  		start = new Date(startValue).getTime()/1000;
+  		end = new Date(endValue).getTime()/1000;
   		
   		jQuery.ajax({type: "POST",
 			      async: false,
@@ -352,6 +571,7 @@
 			      		var i=0;
 			      		var foo = document.getElementById("dialogUI");
 			      		foo.innerHTML = "";
+			      		
 						var myData = $.parseJSON(data);
 						$.each(myData, function( key, value ) {
 								$.each(value, function(k,v){
@@ -371,8 +591,12 @@
 						});	
 						//console.log(annotations);	
 		          }
-		});
-  		
+		})
+  		.fail(function(error) {
+					  alert("Ajax Request Failed\nError Status Code : "+ 
+					  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+					  
+  		}); 
     	drawchart();
     	
 		});
@@ -389,7 +613,7 @@
 									chart.xAxis[0].addPlotBand({
 										from: start*1000,
 										to: stop*1000,
-										color:'#FF83FF',
+										color: colorGenerator(),
 										id: annotationNames[j],
 										label: {
 					                    text: annotationNames[j],
@@ -402,8 +626,8 @@
 						                    click: function(e) {
 						                    	var confirm = window.confirm("Are you sure you want to DELETE this label?");
 						                        if(confirm == true){
-						                        		console.log(j);
-						                        		console.log(annotationNames[j]);
+						                        		//console.log(j);
+						                        		//console.log(annotationNames[j]);
 						                        		$.ajax({
 						                        		
 																  type: "POST",
@@ -413,7 +637,12 @@
 																  		alert("Deletion Successful. \nReload data to veiw changes");
 																  		location.reload();
 																  }
-												 	 	 });
+												 	 	 })
+												 	 	 .fail(function(error) {
+														  alert("Ajax Request Failed\nError Status Code : "+ 
+														  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+														  
+									  					 }); 
 												 	}//if close	 	 
 						                        }//click close
 						                        
@@ -438,12 +667,14 @@
     	var to = [];
     	var i = 0;
     	console.log(from[0]+":"+to[0]+":"+labelname[0])
-			jQuery.ajax({type: "POST",
+						jQuery.ajax({type: "POST",
 						            url: "/show",
+						            async: false,
 						            data: {'dataSeries' : dataSeries },
 						            success: function(data){
-						            	console.log(data);
+						            	
 						                 var myData = $.parseJSON(data);
+										 //console.log(myData.length);
 										  $.each(myData, function( key, value ) {   
     										 var start = true;
     										 var prev;
@@ -460,7 +691,7 @@
 														  to[i] = prev;
 														  i++;
 														  labelname.push(key);
-														  console.log("Number"+Number(k))
+														  //console.log("Number"+Number(k))
 														  from[i]=Number(k);
 														  
 													 } 
@@ -477,6 +708,12 @@
 										 
 									  	start = Math.min.apply(Math, from);
 									   	end = Math.max.apply(Math, to);
+									   	var check = isFinite(end);
+									   	
+									   	if (!check){
+											  	alert("No Annotations Saved For This Data Series");
+									   	}
+									   
 									   	
 									   	jQuery.ajax({type: "POST",
 										      async: false,
@@ -505,32 +742,236 @@
 															});
 													});	
 													//console.log(annotations);	
-									          }
-									   });
-									   	
-									   	drawchart();
-									   	//alert("here");
-									   	
+									          }//success
+									   })//ajax to /annotation
+									   .fail(function(error) {
+										  alert("Ajax Request Failed\nError Status Code : "+ 
+										  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+										  
+					  			   	   }); 	
+
+
+										//drawing chart first	
+
+										var startValue1=Number(start);
+								    	var endValue1=Number(end);
+								    	
+								    	if ( isNaN(start) || isNaN(end)  || startValue1>endValue1){	
+									    	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
+									    	location.reload();
+								    	}
+								    	else{
+								    	var posting = $.ajax({type : 'POST',
+								    						url: "/post",
+								    						data : { 'Start' : start , 'End' : end , 'dataSeries' : dataSeries },
+								    						success:  function(data){
+								    								Highcharts.setOptions({
+																		global: {
+																			useUTC: false
+																		}
+																	});
+											    					var sensorchartOptions = {
+											    					chart: {
+															            renderTo: 'container',
+															            type: 'line',
+															            zoomType: 'x',
+																        events: {
+																        	
+																        	selection: function(event) {
+																        		event.preventDefault();
+																        		if (event.xAxis) {
+																                	var len,value;
+																                	var select_S = new Date(event.xAxis[0].min);
+																                	var select_E = new Date(event.xAxis[0].max);
+																                	
+																                	selectStart = (select_S.getTime()-select_S.getMilliseconds())/1000;
+																                	selectEnd   = (select_E.getTime()-select_E.getMilliseconds())/1000;
+																                    $("#outerdialogUI").dialog({
+																					        resizable: false,
+																					        modal: true,
+																					        title: "Confirm Selection",
+																					        height: 350,
+																					        width: 600,
+																					        buttons: {
+																					            "Yes": function () {
+																					                len = document.getElementsByName("fruits").length;
+																					                for (var i = 0 ; i < len ; i++){
+																					                	if (document.getElementsByName("fruits")[i].checked){
+																					                		value = document.getElementsByName("fruits")[i].value;
+																					                		alert(value);
+																					                		break;
+																					                	}	
+																					                }
+																					                
+																					            },
+																					                "No": function () {
+																					                $(this).dialog('close');
+																					                
+																					            }
+																					       },
+																					       close: function () {
+																									  if (value != null) {
+																									  		var try1 = $('#UIdatepicker1').val();
+																									    	alert(try1);
+																									    	var j=0;
+																									    	var found = false;
+																									    	while(j<annotationNames.length){
+																									      		if(value == j){
+																									        		alert("Device Usage Saved");
+																									        		for (var i=selectStart; i <= selectEnd; i++){
+																									        			
+																									        			annotations[annotationNames[j]][i]=1
+																									        			
+																									        		}
+																									        		
+																									        		
+																									        		
+																									        		found = true;
+																									        	    plot(selectStart,selectEnd,j);
+																									        	    
+																									        	}
+																									        	//console.log("as");
+																									        	//console.log(annotations[annotationNames[j]]);
+																									        	j++;
+																									        	
+																									        }//while
+																									        if (!found){
+																									        	alert("Invalid Input !!! \nPlease Try Again");
+																									        }
+																									        
+																									  }//if
+																									  
+																					        }//close function
+																					 });//dialog close
+																					 
+																                } //if close
+																        	}//selection close
+																      	 
+															    		},//events close
+															        },//chart
+															        title: {
+															            text: 'SENSOR DATA'
+															        },
+															       	rangeSelector: {
+											        						buttons: [{
+																						type: 'minute',
+																						count: 1,
+																						text: 'min'
+																					}, {
+																						type: 'hour',
+																						count: 1,
+																						text: 'hr'
+																					}, {
+																						type: 'day',
+																						text: 'day'
+																					}, {
+																						type: 'all',
+																						text: 'All'
+																					}],
+																			buttonTheme: { // styles for the buttons
+																			    		fill: 'none',
+																			    		stroke: 'none',
+																			    		'stroke-width': 0,
+																			    		r: 8,
+																			    		style: {
+																			    			color: '#039',
+																			    			fontWeight: 'bold'
+																			    		},
+																			    		states: {
+																			    			hover: {
+																			    			},
+																			    			select: {
+																			    				fill: '#039',
+																			    				style: {
+																			    					color: 'white'
+																			    				}
+																			    			}
+																			    		}
+																			    	},
+																			 inputEnabled: false
+																	    	
+																    },
+																    scrollbar: {
+																		barBackgroundColor: 'gray',
+																		barBorderRadius: 7,
+																		barBorderWidth: 0,
+																		buttonBackgroundColor: 'gray',
+																		buttonBorderWidth: 0,
+																		buttonArrowColor: 'yellow',
+																		buttonBorderRadius: 7,
+																		rifleColor: 'yellow',
+																		trackBackgroundColor: 'white',
+																		trackBorderWidth: 1,
+																		trackBorderColor: 'silver',
+																		trackBorderRadius: 7
+																    },
+											       					navigator: {
+																    	handles: {
+																    		backgroundColor: 'yellow',
+																    		borderColor: 'red'
+																    	}
+																    },
+											        				xAxis: {
+											        					type: 'datetime'
+											        				},
+											        				yAxis: {
+											        					allowDecimals :true
+											        				},
+															        series: [{
+															        			data:[]
+															        			
+															        		}]
+															       };			
+															     
+															      chart = new Highcharts.StockChart(sensorchartOptions);
+											    				  var points = $.parseJSON(data);
+											    				  $.each(points, function( key, value ) {
+											    				  			num=Number(key)*1000;
+											    				  			var date = new Date(num).getTime();
+											    				  			chart.series[0].addPoint([date,Number(value)], false);
+											  			        			});
+											  								
+											  					  chart.redraw();
+											  					  alert("Data Loaded Successfully.\nPlease Press 'SHOW' button");
+											  					  }
+													   	   
+													   })
+													  .fail(function(error) {
+													  alert("Ajax Request Failed\nError Status Code : "+ 
+													  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+													  
+								  					 });					
+								    		
+								    		
+								    		}
+
+										//////////////
 									   	$('#temp').click(function(){
 									 	for (var j = 0; j < from.length;j++){
 									 		var parts = labelname[j].split("_");
 									 		var subparts = parts[1].split(".");
 									 		var index = annotationNames.indexOf(subparts[0]);
 									 		plot(from[j],to[j],index);
-										  	console.log(labelname[j]+":"+from[j]+":"+to[j]);
+										  	//console.log(labelname[j]+":"+from[j]+":"+to[j]);
 										   	}
 										from.length=0;
 										to.length=0;
 										labelname.length=0;
-										});			                
-						            }
-						      });
+										});//temp.click			                
+						            }//success
+						      })//ajax to /show
+						      .fail(function(error) {
+								  alert("Ajax Request Failed\nError Status Code : "+ 
+								  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+								  
+			  			 	  }); 
 						      
 			})
 		
+	
 		
 		$('#save').click(function() {
-		var devicechartOptions = {
+		/*var devicechartOptions = {
     					chart: {
 				            renderTo: 'container2',
 				            type: 'line',
@@ -645,7 +1086,7 @@
     				   	  
     				  }
     				  		chart2.redraw();
-    				  	
+    				  	*/
   					  		var annotated = {};
   					  		annotated.start = start;
   					  		annotated.end = end;
@@ -667,17 +1108,23 @@
   							jQuery.ajax({type: "POST",
 						            url: "/save",
 						            data: annotatedJson,
-						            dataType: "json",
+						            
 						            contentType: "application/json; charset=utf-8",
 						            success: function(data){
-						                alert("Changes been succesfully saved"+data);
+						                alert("Changes been succesfully saved");
 						            }
-						      });
+						      })
+						      .fail(function(error) {
+						      
+								  alert("Ajax Request Failed\nError Status Code : "+ 
+								  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+			  			      }); 
+						      
   					  
-		});
+		});//save.click 
 		
 		
-		});
+	});//Main document.ready func
 		
 		
 		
