@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.json.*;
@@ -163,6 +164,7 @@ public class Application extends Controller {
      * To send names of the available data series
      */
     public static Result data() {
+    	
     	
     	String DirPath = "data/";
     	String files;
@@ -460,30 +462,58 @@ public class Application extends Controller {
 		
 	    return ok();
     }
-    public static Map<String, String> maps = new HashMap<String, String>();
+    public static Map<String, Map<String,String>> maps = new HashMap<String, Map<String,String>>();
     /*--------------
      * To Send the main series data to be rendered in the HighChart 
      ----------------*/
     public static Result post() throws ClassNotFoundException, NoSuchFieldException, SecurityException {
-    	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
-        String StartDate = parameters.get("Start")[0];
-        String EndDate = parameters.get("End")[0];
+    	
+    	/*Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+        System.out.print("sd");
+
+    	int StartDate = Integer.parseInt(parameters.get("Start")[0]);
+        int EndDate = Integer.parseInt(parameters.get("End")[0]);
         String DataSeries = parameters.get("dataSeries")[0];
+		Map<String,String> ReqMap = new HashMap<>();
+        System.out.print("sd");
+
+        Map<String,String> data = maps.get(DataSeries);
+        System.out.print("sd");
+        int i = StartDate;
+        /*while (i<EndDate){
+        	
+        	if (data.containsKey(i))
+        		{System.out.println(data.get(i));}
+        	i++;
+         
+        }
         
-        String csvFile = "data/"+DataSeries;
-		BufferedReader br = null;
-		String line = "";
-		boolean Started=false;
-		String cvsSplitBy = ",";
-		Map<String, String> maps = new HashMap<String, String>();
-		
-		try {	
-			
-	  		br = new BufferedReader(new FileReader(csvFile));
-			while ((line = br.readLine()) != null) {
-	 		String[] value = line.split(cvsSplitBy);
-	 		
-	 		 if(value[0].equals(StartDate)){
+        
+        /*Boolean Started = false;
+        Set<String> set = data.keySet();
+        //System.out.print(set);
+        Iterator<String> it = set.iterator();
+
+        while(it.hasNext()){
+        	String currentValue= it.next(); 
+        	if(currentValue.equals(StartDate)){
+        		ReqMap.put(currentValue, data.get(currentValue));
+                Started = true;
+                System.out.print("here");
+            } 
+            if(currentValue.equals(EndDate) && Started){
+            	ReqMap.put(currentValue, data.get(currentValue));
+                Started = false;
+                System.out.print("here12");
+            }
+			if(Started){
+				  
+				ReqMap.put(currentValue, data.get(currentValue));
+          	}
+        	
+        }
+        
+       		if(value[0].equals(StartDate)){
 	                            Started = true;
 	                            
 	                        } 
@@ -495,9 +525,57 @@ public class Application extends Controller {
 								  
 	                            maps.put(value[0], value[1]);
 	                      	}
+	
+		//System.out.print(ReqMap);
+		String json ="";
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			json = mapper.writeValueAsString(ReqMap);
+		}  catch (IOException e) {
+			// TODO Auto-generated catch block
+   			return internalServerError("Server Error : IOException"+e.getMessage()); 
+
+		}
+			
+        return ok(json);*/
+    	
+    	
+    	
+    	
+    	//==========second Way
+    	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+        String StartDate = parameters.get("Start")[0];
+        String EndDate = parameters.get("End")[0];
+        String DataSeries = parameters.get("dataSeries")[0];
+        
+        String csvFile = "data/"+DataSeries;
+		BufferedReader br = null;
+		String line = "";
+		boolean Started=false;
+		String cvsSplitBy = ",";
+		Map<String, String> maps = new HashMap<String, String>();
+
+		try {	
+
+	  		br = new BufferedReader(new FileReader(csvFile));
+			while ((line = br.readLine()) != null) {
+	 		String[] value = line.split(cvsSplitBy);
+
+	 		 if(value[0].equals(StartDate)){
+	                            Started = true;
+
+	                        } 
+	                        if(value[0].equals(EndDate) && Started){
+	                            maps.put(value[0], value[1]);
+	                            Started = false;
+	                        }
+							if(Started){
+
+	                            maps.put(value[0], value[1]);
+	                      	}
 			}
 		} catch (FileNotFoundException e) {
-			System.out.println("sdfsdf"+DataSeries);
+			
    			return internalServerError("Server Error : FileNotFoundException"+e.getMessage()); 
 
 		} catch (IOException e) {
@@ -513,7 +591,7 @@ public class Application extends Controller {
 				}
 			}
 		}
-		
+System.out.print("asa");
 		String json ="";
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -525,5 +603,7 @@ public class Application extends Controller {
 		}
      
         return ok(json);
+    	
+    	
     }
 }
