@@ -532,6 +532,8 @@
 													  	maxDate :endDate,
 													  	formatdate:'Y/m/d',
 													});
+													console.log(selectStart);
+													console.log(selectEnd);
 								                    $("#outerdialogUI").dialog({
 													        resizable: false,
 													        modal: true,
@@ -557,13 +559,19 @@
 													       },//buttons close
 													       close: function () {
 																	  if (value != null) {
-																	  		
+																	  		var StartVal = $('#UIdatepicker1').val()
+																	    	var EndVal = $('#UIdatepicker2').val()
+																	    	var startDate = new Date(StartVal);
+																	    	var endDate = new Date(EndVal);
+																	    	var finalStart = (startDate.getTime()-startDate.getMilliseconds())/1000;
+																	    	var finalEnd = (endDate.getTime()-endDate.getMilliseconds())/1000;
+																	    	
 																	    	var j=0;
 																	    	var found = false;
 																	    	while(j<annotationNames.length){
 																	      		if(value == j){
 																	        		alert("Device Usage Saved");
-																	        		for (var i=selectStart; i <= selectEnd; i++){
+																	        		for (var i=finalStart; i <= finalEnd; i++){
 																	        			
 																	        			annotations[annotationNames[j]][i]=1
 																	        			
@@ -693,7 +701,6 @@
  	
  		var $form = $( this );
   		startValue = $form.find( "input[name='start']" ).val();
-  		alert(startValue);
   		endValue = $form.find( "input[name='end']" ).val();
   		start = new Date(startValue).getTime()/1000;
   		end = new Date(endValue).getTime()/1000;
