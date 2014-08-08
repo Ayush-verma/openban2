@@ -5,6 +5,8 @@
 # Home page
 GET     /                           controllers.Application.index()
 
+GET 	/help						controllers.Application.help()
+
 #post
 POST    /post                       controllers.Application.post()
 
@@ -13,6 +15,8 @@ POST 	/save						controllers.Application.save()
 POST 	/show						controllers.Application.show()
 
 POST  	/delete						controllers.Application.delete()
+
+POST	/downloadReading			controllers.Application.download()
 
 #To get the names of possible annotations for the data series
 POST	/annotations				controllers.Application.annotations()

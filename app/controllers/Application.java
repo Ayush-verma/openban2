@@ -1,6 +1,11 @@
 package controllers;
 
 import play.*;
+import play.libs.WS.*;
+import play.libs.WS;
+import scala.concurrent.Future;
+import static play.libs.F.Function;
+import static play.libs.F.Promise;
 import play.mvc.*;
 import views.html.*;
 import play.api.*;
@@ -10,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -24,10 +30,48 @@ import com.fasterxml.jackson.databind.*;
 
 public class Application extends Controller {
 	
+	/*
+	 * Home Page
+	 */
     public static Result index() {
         return ok(index.render("OpenBan"));
     }
     
+    /*
+     * Help Page
+     */
+    public static Result help() {
+       return ok(index.render("OpenBan"));
+    }
+    
+    /*
+     * ----To Download MeterReading and Make CSV file ServerSide------
+     */
+    public static Result download() {
+    	Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+        String uuid = parameters.get("uuid")[0];
+        String FileName = parameters.get("FileName")[0];
+        System.out.println("uuid"+uuid+"file"+FileName);
+        
+        String feedUrl = "http://energy.iiitd.edu.in:9102/backend/api/data/uuid/ff48ff93-a883-5391-9977-60c7c7bca113?starttime=1407425580000&endtime=1407426180000&format=csv&tags=&timefmt=iso8601&" ;
+        Promise<Result> resultPromise = WS.url(feedUrl).get().map(
+                new Function<WS.Response, Result>() {
+                    public Result apply(WS.Response response) {
+                 	   JsonNode plz = response.asJson().findValue("Readings");
+                 	   try {
+                     	  FileWriter file = new FileWriter("data/"+FileName+".csv");
+                     	  file.write(plz.toString());
+                     	  file.close();
+                          } catch (IOException e) {
+                            e.printStackTrace();
+                 
+                          } 
+                 	   return ok();
+                    }
+                }
+        );
+     	return ok();
+     }
     
     /*
      * To save a new possible annotation name for given data series
@@ -468,9 +512,9 @@ public class Application extends Controller {
      ----------------*/
     public static Result post() throws ClassNotFoundException, NoSuchFieldException, SecurityException {
     	
-    	/*Map<String,String[]> parameters = request().body().asFormUrlEncoded();
+    	Map<String,String[]> parameters1 = request().body().asFormUrlEncoded();
         System.out.print("sd");
-
+        /*
     	int StartDate = Integer.parseInt(parameters.get("Start")[0]);
         int EndDate = Integer.parseInt(parameters.get("End")[0]);
         String DataSeries = parameters.get("dataSeries")[0];

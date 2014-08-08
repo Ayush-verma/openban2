@@ -52,7 +52,12 @@
         @content
     <hr>
     
+    <h2> To Download Meter Reading <h2>
+    <input type="text" id="uuid" placeholder="Enter Desired UUID">
+    <input type="text" id="name" placeholder="Enter Desired FileName">
+    <button type="button" id="Download">Enter To Save</button> 
     
+    <hr>
     
     <form action="/post" id="searchForm">
     <h2>Select Data Series <select id="data_names"></select> </h2>
@@ -153,6 +158,29 @@
 					dataSeries=theSelect.value;
 			}
 			
+			//----To Download MeterReading and Make CSV file ServerSide------
+			$('#Download').click(function() {
+				var uuid = document.getElementById('uuid').value;
+				var FileName = document.getElementById('name').value;
+				jQuery.ajax({type: "POST",
+			      	  async: false,
+				      data: {'uuid' : uuid, 'FileName' : FileName },
+				      url: "/downloadReading",
+				      success: function(data){
+				      		alert("Addition Successful");
+				      		
+			          }
+			  	})
+	  			.fail(function(error) {
+						  alert("Ajax Request Failed\nError Status Code : "+ 
+						  error.status +"\nError Type : "+error.responseText+"\nPlease Try Again");
+						  
+	  			}); 
+			}); 
+			
+			
+			
+			
 			//----Adding Annotations Names--------
 			$('#saveAnnotations').click(function() {
 			
@@ -195,7 +223,7 @@
 			
 			
 			
-			//-------Delting Annotations Names------ 
+			//-------Deleting Annotations Names------ 
 				
 			$('#deleteAnnotations').click(function() {
 				var theSelect3 = document.getElementById('data_names3');
@@ -297,37 +325,8 @@
 						  
 	  			}); 
 			}); 
-					
-			
-			//------------Initializing DateTimepickers 
-			jQuery('#datepicker1').datetimepicker({
-			startDate: '-1970/07/07',
-			minDate:'2014/01/06',
-  			maxDate:'2014/01/18',
-  			
-  			
-			
-			});
-  		
-			jQuery('#datepicker2').datetimepicker({
-			startDate: '-1970/07/07',
-  			minDate:'2014/01/06',
-  			maxDate:'2014/01/18',
-  			
-  			  			
-			});
-			
-			
-				 
-				
-			
-			//jQuery('#UIdatepicker1').datetimepicker();
-			
-			//jQuery('#UIdatepicker2').datetimepicker();
-		
 
-
-////////////////
+ 	//-------- Function to format Date -----------
     var dateFormat = function () {
         var    token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
             timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
@@ -439,11 +438,12 @@
     Date.prototype.format = function (mask, utc) {
         return dateFormat(this, mask, utc);
     };
-/////////////
 
+
+	//----- Function to generate random(yet pleasant)colors for plot bands ------ 
+	//-----       				Using HSL Values					 	   ------
 		
 		function colorGenerator(){
-			
 			function rand(min, max) {
 			    return min + Math.random() * (max - min);
 			}
@@ -476,15 +476,29 @@
     		B = Math.round(b * 255);
     		var hex = "#" + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
 			return hex;
-		}
+		}	
+	
+		//------------Initializing DateTimepickers 			
+		jQuery('#datepicker1').datetimepicker({
+		startDate: '-1970/07/14',
+		minDate:'2014/01/06',
+  		maxDate:'2014/01/18',
+  		
+  		});
+  		
+  		jQuery('#datepicker2').datetimepicker({
+		startDate: '-1970/07/14',
+  		minDate:'2014/01/06',
+  		maxDate:'2014/01/18',
+  					
+		});
 		
+		//jQuery('#UIdatepicker1').datetimepicker();
+		//jQuery('#UIdatepicker2').datetimepicker();
 		
-		
-		
-		
+		//---------- Function to draw the Highstock Chart ---------
 		function drawchart(){
-
-    	var startValue1=Number(start);
+		var startValue1=Number(start);
     	var endValue1=Number(end);
     	if ( isNaN(start) || isNaN(end)  || startValue1>endValue1){	
 	    	alert("ERROR : INVALID DATA ENTRY\nPLEASE TRY AGAIN");
@@ -518,23 +532,27 @@
 								                	selectEnd   = (select_E.getTime()-select_E.getMilliseconds())/1000;
 								                	var strt = new Date(selectStart*1000).format("yyyy/mm/dd HH:MM");
 								                	var strtDate = new Date(selectStart*1000).format("yyyy/mm/dd");
+								                	//var strtTime = new Date(selectStart*1000-300000).format("HH:MM");
 								                	var end = new Date(selectEnd*1000).format("yyyy/mm/dd HH:MM");
 								                	var endDate = new Date(selectEnd*1000).format("yyyy/mm/dd");
+								                	//var endTime = new Date(selectEnd*1000+300000).format("HH:MM");
 								                	jQuery('#UIdatepicker1').datetimepicker({
 								                		 value : strt,
 								                		 minDate :strtDate,
+													  	 //minTime :strtTime, 
 													  	 maxDate :endDate,
+													  	 //maxTime :endTime,
 													  	 formatdate:'Y/m/d',
+													  	 step :5,
 								                	});
 								                	jQuery('#UIdatepicker2').datetimepicker({
 													    value : end,
 													    minDate :strtDate,
 													  	maxDate :endDate,
 													  	formatdate:'Y/m/d',
+													  	step :5,
 													});
-													console.log(selectStart);
-													console.log(selectEnd);
-								                    $("#outerdialogUI").dialog({
+												    $("#outerdialogUI").dialog({
 													        resizable: false,
 													        modal: true,
 													        title: "Confirm Selection",
@@ -570,7 +588,7 @@
 																	    	var found = false;
 																	    	while(j<annotationNames.length){
 																	      		if(value == j){
-																	        		alert("Device Usage Saved");
+																	        		alert("Device Usage Recorded.\nPress Save Annotations to confirm.");
 																	        		for (var i=finalStart; i <= finalEnd; i++){
 																	        			
 																	        			annotations[annotationNames[j]][i]=1
